@@ -33,7 +33,7 @@
     "@mridang/eslint-defaults": "^1.6.3",
     "@tailwindcss/vite": "^4.3.1",
     "@types/node": "^24.13.1",
-    "cypress": "^14.5.4",
+    "cypress": "^15.17.0",
     "eslint": "^9.39.4",
     "eslint-plugin-astro": "^1.7.0",
     "knip": "^6.17.1",
