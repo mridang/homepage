@@ -10,6 +10,10 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   site: 'https://mrida.ng',
   output: 'server',
+  // Inline the (small) stylesheet into the HTML so it isn't a separate
+  // render-blocking request — single-page site, so there's nothing to
+  // share a cached stylesheet with anyway.
+  build: { inlineStylesheets: 'always' },
   adapter: cloudflare({
     platformProxy: { enabled: true },
     // Optimise images at build time instead of binding to the runtime
