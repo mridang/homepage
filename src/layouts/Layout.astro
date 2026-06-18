@@ -7,21 +7,47 @@ interface Props {
 }
 
 const SITE_URL = 'https://mrida.ng';
-const DEFAULT_TITLE = 'Mridang Agarwalla';
+const SITE_NAME = 'Mridang Agarwalla';
+// SERP titles use ~50–60 chars; the bare name is too short to earn the space.
+const DEFAULT_TITLE =
+  'Mridang Agarwalla — Software Engineer & Designer for the Web';
+// Meta description (SERP) runs longer; og/twitter run shorter so social
+// cards don't truncate on mobile (~125 chars).
 const DEFAULT_DESCRIPTION =
-  'I build calm, considered software for the web. An engineer who designs — ' +
-  'clean systems, fast iterations, and interfaces that earn their place.';
+  'Mridang Agarwalla builds calm, considered software for the web — an ' +
+  'engineer who designs clean systems and interfaces that earn their place.';
+const OG_DESCRIPTION =
+  'I build calm, considered software for the web — clean systems, fast ' +
+  'iterations, and interfaces that earn their place.';
 const KEYWORDS =
   'Mridang Agarwalla, software engineer, web developer, full-stack developer, ' +
   'frontend engineer, software designer, TypeScript, Cloudflare, web design';
 const OG_ALT =
   'Mridang Agarwalla — I build calm, considered software for the web.';
 
+const SOCIAL_PROFILES = [
+  'https://github.com/mridang',
+  'https://www.linkedin.com/in/mridang/',
+  'https://medium.com/@mridang.agarwalla',
+];
+
 const { title = DEFAULT_TITLE, description = DEFAULT_DESCRIPTION } =
   Astro.props;
 
 const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 const ogImage = new URL('/og.png', SITE_URL).href;
+
+// Person structured data. Deliberately omits the email so the obfuscated
+// address isn't leaked back into the HTML as plaintext.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: SITE_NAME,
+  url: SITE_URL,
+  jobTitle: 'Software Engineer',
+  description: DEFAULT_DESCRIPTION,
+  sameAs: SOCIAL_PROFILES,
+};
 ---
 
 <!doctype html>
@@ -54,9 +80,9 @@ const ogImage = new URL('/og.png', SITE_URL).href;
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content={DEFAULT_TITLE} />
+    <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
+    <meta property="og:description" content={OG_DESCRIPTION} />
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content="en_US" />
     <meta property="og:image" content={ogImage} />
@@ -69,9 +95,12 @@ const ogImage = new URL('/og.png', SITE_URL).href;
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
+    <meta name="twitter:description" content={OG_DESCRIPTION} />
     <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:image:alt" content={OG_ALT} />
+
+    <!-- Structured data -->
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
   <body>
     <slot />
