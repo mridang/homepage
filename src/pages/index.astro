@@ -1,8 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-// Footer social links. Icon paths are the design's own marks; the same
-// SVGs are mirrored as standalone assets in public/icons/.
+// Footer social links. Icon paths are the design's own marks, inlined so
+// they inherit currentColor for the hover state.
 const socials = [
   {
     label: 'LinkedIn',
@@ -42,35 +42,42 @@ const socials = [
 
     <footer class="footer">
       <div class="rule"></div>
-      <div class="meta">
-        <nav class="socials" aria-label="Social links">
-          {
-            socials.map((s) => (
-              <a
-                class="social"
-                href={s.href}
-                aria-label={s.label}
-                {...(s.href.startsWith('http')
-                  ? { target: '_blank', rel: 'me noopener noreferrer' }
-                  : {})}
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d={s.path} />
-                </svg>
-              </a>
-            ))
-          }
-        </nav>
+      <nav class="socials" aria-label="Social and contact links">
         {
-          /* Email is assembled by JS so the plaintext address never appears
-            in the server-rendered HTML (Cloudflare's Scrape Shield email
-            obfuscation does not run on Worker responses). The noscript
-            fallback shows a regex-proof form. */
+          socials.map((s) => (
+            <a
+              class="social"
+              href={s.href}
+              aria-label={s.label}
+              target="_blank"
+              rel="me noopener noreferrer"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d={s.path} />
+              </svg>
+            </a>
+          ))
         }
-        <a id="contact-email" class="contact" rel="nofollow">
-          <noscript>contact [at] mrida [dot] ng</noscript>
+        {
+          /* Email icon. The mailto is assembled by JS so the address never
+             appears in the server-rendered HTML — nothing for a scraper to
+             harvest. It starts `hidden` so no-JS clients don't see a dead,
+             unfocusable icon; the script reveals it once it's a real link. */
+        }
+        <a
+          id="contact-email"
+          class="social"
+          aria-label="Email"
+          rel="nofollow"
+          hidden
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path
+              d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"
+            ></path>
+          </svg>
         </a>
-      </div>
+      </nav>
     </footer>
   </div>
 
@@ -78,9 +85,10 @@ const socials = [
     (function () {
       var a = document.getElementById('contact-email');
       if (!a) return;
-      var addr = ['contact', 'mrida.ng'].join('@');
-      a.href = 'mailto:' + addr;
-      a.textContent = addr;
+      var user = ['cont', 'act'].join('');
+      var domain = ['mrida', 'ng'].join('.');
+      a.href = 'mailto:' + user + '@' + domain;
+      a.hidden = false;
     })();
   </script>
 </Layout>
@@ -157,30 +165,10 @@ const socials = [
     background: var(--rule);
   }
 
-  .meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 18px 24px;
-  }
-
   .socials {
     display: flex;
     gap: 18px;
     justify-content: flex-start;
-  }
-
-  .contact {
-    font-weight: 500;
-    font-size: clamp(14px, 1.1vw, 16px);
-    color: var(--muted);
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-
-  .contact:hover {
-    color: var(--accent);
   }
 
   .social {
@@ -200,6 +188,17 @@ const socials = [
   .social:hover {
     color: var(--accent);
     border-color: var(--accent);
+  }
+
+  /* The class sets display:inline-flex, which would otherwise beat the UA
+     [hidden] rule and show the not-yet-wired email icon. */
+  .social[hidden] {
+    display: none;
+  }
+
+  .social:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
   }
 
   .social svg {

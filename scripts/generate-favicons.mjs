@@ -9,7 +9,7 @@
 //   node scripts/generate-favicons.mjs
 //
 // Outputs land in public/ (favicon.svg/.ico, sized PNGs, apple-touch,
-// maskable/PWA icons, mask-icon.svg, og.png, site.webmanifest).
+// mask-icon.svg, og.png). No PWA manifest/icons — not an installable app.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -51,7 +51,7 @@ const union = (...bs) => ({
 });
 
 // ---- The "M." mark, centred in a `size` box (optionally with a tile). ----
-function mark(size, { tile = true, mono = false, padRatio = 0.18 } = {}) {
+function mark(size, { tile = true, mono = false, padRatio = 0.1 } = {}) {
   const m = glyph(ultra, 'M');
   const dotX = adv(ultra, 'M') * 0.92;
   const dot = glyph(ultra, '.', dotX);
@@ -84,22 +84,15 @@ out(
 // Safari pinned-tab mask (monochrome, transparent).
 out('mask-icon.svg', Buffer.from(mark(512, { tile: false, mono: true })));
 
-// Sized PNGs.
+// Sized PNGs. (No PWA/manifest icons — this is intentionally not an
+// installable web app.) apple-touch-icon is a bookmark icon, not PWA.
 const sizes = {
   'favicon-16x16.png': 16,
   'favicon-32x32.png': 32,
   'favicon-48x48.png': 48,
   'apple-touch-icon.png': 180,
-  'icon-192.png': 192,
-  'icon-512.png': 512,
 };
 for (const [name, n] of Object.entries(sizes)) out(name, await resize(n));
-
-// Maskable icon needs the glyph inside the inner 80% safe zone.
-out(
-  'icon-maskable-512.png',
-  await png(mark(512, { padRatio: 0.3 })).toBuffer(),
-);
 
 // favicon.ico (16/32/48).
 out(
@@ -147,38 +140,8 @@ function og() {
 }
 out('og.png', await png(og()).toBuffer());
 
-// ---- Web app manifest. ----
-const manifest = {
-  name: 'Mridang Agarwalla',
-  short_name: 'Mridang',
-  description:
-    'I build calm, considered software for the web. An engineer who designs — clean systems, fast iterations, and interfaces that earn their place.',
-  start_url: '/',
-  scope: '/',
-  display: 'standalone',
-  background_color: BG,
-  theme_color: ACCENT,
-  icons: [
-    {
-      src: '/icon-192.png',
-      sizes: '192x192',
-      type: 'image/png',
-      purpose: 'any',
-    },
-    {
-      src: '/icon-512.png',
-      sizes: '512x512',
-      type: 'image/png',
-      purpose: 'any',
-    },
-    {
-      src: '/icon-maskable-512.png',
-      sizes: '512x512',
-      type: 'image/png',
-      purpose: 'maskable',
-    },
-  ],
-};
-out('site.webmanifest', Buffer.from(JSON.stringify(manifest, null, 2) + '\n'));
+// Note: no web app manifest is emitted on purpose — this site is not an
+// installable PWA, and a manifest with icons + display:standalone is what
+// makes browsers offer "Install".
 
-console.log('Generated favicon set + og.png + site.webmanifest into public/');
+console.log('Generated favicon set + og.png into public/');

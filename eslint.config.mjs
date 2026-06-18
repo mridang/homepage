@@ -30,10 +30,10 @@ export default [
     },
     settings: {
       // `cloudflare:workers` is a Workers runtime built-in (like Node's
-      // `node:` modules) — an ambient module with no file to resolve to.
-      // Whitelist it globally so `import/no-unresolved` stays active for
-      // everything else.
-      'import/core-modules': ['cloudflare:workers'],
+      // `node:` modules) and `astro:*` are Astro's virtual modules — both
+      // are ambient with no file to resolve to. Whitelist them so
+      // `import/no-unresolved` stays active for everything else.
+      'import/core-modules': ['cloudflare:workers', 'astro:middleware'],
     },
   },
   {
