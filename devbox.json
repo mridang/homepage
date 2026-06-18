@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.10.7/.schema/devbox.schema.json",
+  "packages": ["nodejs@24", "cloudflared@latest"],
+  "shell": {
+    "scripts": {
+      "dev": ["npm run dev -- --port 3737"],
+      "wrangler-dev": [
+        "npm run build && npx wrangler dev --config dist/server/wrangler.json --port 3737 --local"
+      ],
+      "tunnel": [
+        "cloudflared tunnel --no-autoupdate --url http://localhost:3737"
+      ],
+      "build": ["npm run build"],
+      "lint": ["npx eslint ."],
+      "check": ["npm run build && npx eslint ."],
+      "deploy": [
+        "npm run build && npx wrangler deploy --config dist/server/wrangler.json"
+      ]
+    }
+  }
+}

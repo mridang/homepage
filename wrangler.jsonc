@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "homepage",
+  "account_id": "779037e608ab1102679ef8b1bd499d49",
+  "compatibility_date": "2026-05-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // `main` and the `ASSETS` binding are injected by @astrojs/cloudflare's
+  // Vite plugin at build time (it points `main` at its own SSR entrypoint
+  // and bundles the worker + hashed assets into dist/). Setting them here
+  // would make the Cloudflare Vite plugin try to resolve a dist/ file that
+  // doesn't exist yet, so we deliberately leave them out.
+
+  // Cloudflare auto-routes the Worker to the colo closest to the viewer.
+  "placement": { "mode": "smart" },
+  // Full Workers Observability: logs, metrics, invocation traces — all
+  // sampled at 100%. The volume on a single-page site is tiny.
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+    },
+  },
+  // Custom domain — the workers.dev subdomain is disabled so the
+  // canonical URL is the apex we control. The mrida.ng zone must be
+  // attached to this Cloudflare account for the custom_domain bind to
+  // succeed.
+  "workers_dev": false,
+  "routes": [{ "pattern": "mrida.ng", "custom_domain": true }],
+}
