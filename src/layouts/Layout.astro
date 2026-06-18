@@ -8,7 +8,9 @@ interface Props {
 
 const SITE_URL = 'https://mrida.ng';
 const DEFAULT_TITLE = 'Mridang Agarwalla';
-const DEFAULT_DESCRIPTION = 'The personal homepage of Mridang Agarwalla.';
+const DEFAULT_DESCRIPTION =
+  'I build calm, considered software for the web. An engineer who designs — ' +
+  'clean systems, fast iterations, and interfaces that earn their place.';
 
 const { title = DEFAULT_TITLE, description = DEFAULT_DESCRIPTION } =
   Astro.props;
@@ -17,7 +19,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 ---
 
 <!doctype html>
-<html lang="en" class="h-full antialiased">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -37,7 +39,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
   </head>
-  <body class="flex min-h-full flex-col overflow-x-hidden font-sans">
+  <body>
     <slot />
   </body>
 </html>
