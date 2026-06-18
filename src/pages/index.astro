@@ -26,9 +26,12 @@ const socials = [
   <div class="screen">
     <header class="masthead">
       <div class="logo">MRIDA<span class="logo-italic">NG</span></div>
-      <div class="pronunciation">
+      <div class="pronunciation" tabindex="0" aria-describedby="call-me-mika">
         <span class="pos">n.</span>
         <span class="ipa">/mriˈdɑːːŋ/</span>
+        <span class="tip" id="call-me-mika" role="tooltip"
+          >…or you can just call me “Mika”. 😅</span
+        >
       </div>
     </header>
 
@@ -129,6 +132,7 @@ const socials = [
   }
 
   .pronunciation {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 7px;
@@ -138,6 +142,12 @@ const socials = [
     font-size: clamp(12px, 0.95vw, 14px);
     letter-spacing: 0.01em;
     color: var(--muted);
+    cursor: help;
+  }
+
+  .pronunciation:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
   }
 
   .pronunciation .pos {
@@ -148,6 +158,42 @@ const socials = [
 
   .pronunciation .ipa {
     font-weight: 400;
+  }
+
+  .pronunciation .tip {
+    position: absolute;
+    top: calc(100% + 9px);
+    left: 0;
+    z-index: 2;
+    white-space: nowrap;
+    padding: 7px 11px;
+    border-radius: 9px;
+    background: var(--head);
+    color: var(--bg);
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: 0;
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  .pronunciation .tip::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 18px;
+    border: 5px solid transparent;
+    border-bottom-color: var(--head);
+  }
+
+  .pronunciation:hover .tip,
+  .pronunciation:focus-visible .tip {
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .lede {
