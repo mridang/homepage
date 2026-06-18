@@ -157,7 +157,7 @@ const manifest = {
   scope: '/',
   display: 'standalone',
   background_color: BG,
-  theme_color: BG,
+  theme_color: ACCENT,
   icons: [
     {
       src: '/icon-192.png',

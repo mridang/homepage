@@ -42,26 +42,47 @@ const socials = [
 
     <footer class="footer">
       <div class="rule"></div>
-      <nav class="socials" aria-label="Social links">
+      <div class="meta">
+        <nav class="socials" aria-label="Social links">
+          {
+            socials.map((s) => (
+              <a
+                class="social"
+                href={s.href}
+                aria-label={s.label}
+                {...(s.href.startsWith('http')
+                  ? { target: '_blank', rel: 'me noopener noreferrer' }
+                  : {})}
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d={s.path} />
+                </svg>
+              </a>
+            ))
+          }
+        </nav>
         {
-          socials.map((s) => (
-            <a
-              class="social"
-              href={s.href}
-              aria-label={s.label}
-              {...(s.href.startsWith('http')
-                ? { target: '_blank', rel: 'me noopener noreferrer' }
-                : {})}
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d={s.path} />
-              </svg>
-            </a>
-          ))
+          /* Email is assembled by JS so the plaintext address never appears
+            in the server-rendered HTML (Cloudflare's Scrape Shield email
+            obfuscation does not run on Worker responses). The noscript
+            fallback shows a regex-proof form. */
         }
-      </nav>
+        <a id="contact-email" class="contact" rel="nofollow">
+          <noscript>contact [at] mrida [dot] ng</noscript>
+        </a>
+      </div>
     </footer>
   </div>
+
+  <script is:inline>
+    (function () {
+      var a = document.getElementById('contact-email');
+      if (!a) return;
+      var addr = ['contact', 'mrida.ng'].join('@');
+      a.href = 'mailto:' + addr;
+      a.textContent = addr;
+    })();
+  </script>
 </Layout>
 
 <style>
@@ -137,10 +158,30 @@ const socials = [
     background: var(--rule);
   }
 
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px 24px;
+  }
+
   .socials {
     display: flex;
     gap: 18px;
     justify-content: flex-start;
+  }
+
+  .contact {
+    font-weight: 500;
+    font-size: clamp(14px, 1.1vw, 16px);
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .contact:hover {
+    color: var(--accent);
   }
 
   .social {
