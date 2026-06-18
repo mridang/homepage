@@ -11,11 +11,17 @@ const DEFAULT_TITLE = 'Mridang Agarwalla';
 const DEFAULT_DESCRIPTION =
   'I build calm, considered software for the web. An engineer who designs — ' +
   'clean systems, fast iterations, and interfaces that earn their place.';
+const KEYWORDS =
+  'Mridang Agarwalla, software engineer, web developer, full-stack developer, ' +
+  'frontend engineer, software designer, TypeScript, Cloudflare, web design';
+const OG_ALT =
+  'Mridang Agarwalla — I build calm, considered software for the web.';
 
 const { title = DEFAULT_TITLE, description = DEFAULT_DESCRIPTION } =
   Astro.props;
 
 const canonical = new URL(Astro.url.pathname, SITE_URL).href;
+const ogImage = new URL('/og.png', SITE_URL).href;
 ---
 
 <!doctype html>
@@ -23,21 +29,49 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="canonical" href={canonical} />
 
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="keywords" content={KEYWORDS} />
+    <meta name="author" content="Mridang Agarwalla" />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="light" />
+    <link rel="canonical" href={canonical} />
 
+    <!-- Icons / manifest -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="mask-icon" href="/mask-icon.svg" color="#1a23ff" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={DEFAULT_TITLE} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:secure_url" content={ogImage} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={OG_ALT} />
 
-    <meta name="twitter:card" content="summary" />
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={OG_ALT} />
   </head>
   <body>
     <slot />
