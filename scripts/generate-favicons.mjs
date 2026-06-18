@@ -57,7 +57,10 @@ const union = (...bs) => ({
 });
 
 // ---- The "M." mark, centred in a `size` box (optionally with a tile). ----
-function mark(size, { tile = true, mono = false, padRatio = 0.1 } = {}) {
+// The tile is the accent blue and fills the whole slot so the favicon
+// reads as a bold mark at 16px (a white tile is invisible on light tab
+// strips, leaving only a tiny floating glyph). The "M." is white.
+function mark(size, { tile = true, mono = false, padRatio = 0.12 } = {}) {
   const m = glyph(ultra, 'M');
   const dotX = adv(ultra, 'M') * 0.92;
   const dot = glyph(ultra, '.', dotX);
@@ -68,12 +71,14 @@ function mark(size, { tile = true, mono = false, padRatio = 0.1 } = {}) {
   const s = Math.min((size - pad * 2) / w, (size - pad * 2) / h);
   const tx = (size - w * s) / 2 - bb.x1 * s;
   const ty = (size - h * s) / 2 - bb.y1 * s;
-  const r = size * 0.1875;
+  // Square tile — no rounded corners.
   const bgRect = tile
-    ? `<rect width="${size}" height="${size}" rx="${r}" fill="${BG}"/>`
+    ? `<rect width="${size}" height="${size}" fill="${ACCENT}"/>`
     : '';
-  const mFill = mono ? '#000000' : INK;
-  const dFill = mono ? '#000000' : ACCENT;
+  // Monochrome (Safari mask-icon) is a flat black glyph on transparent.
+  // The tiled version is white on the blue tile.
+  const mFill = mono ? '#000000' : tile ? '#ffffff' : INK;
+  const dFill = mono ? '#000000' : tile ? '#ffffff' : ACCENT;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">${bgRect}<g transform="translate(${tx} ${ty}) scale(${s})"><path d="${m.d}" fill="${mFill}"/><path d="${dot.d}" fill="${dFill}"/></g></svg>`;
 }
 
