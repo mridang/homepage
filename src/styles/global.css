@@ -1,34 +1,42 @@
 @import 'tailwindcss';
 
-/* Self-hosted GT Walsheim — only the weights the page actually renders
-   (logo 800 + 800 italic, headline 700, body 400). */
+/* Self-hosted GT Walsheim (woff2) — only the weights the page renders:
+   body 400, headline 700, logo 800 + 800 italic, and the pronunciation
+   "n." at 500 italic. OTF sources live in assets/fonts/. */
 @font-face {
   font-family: 'GT Walsheim';
   font-weight: 400;
   font-style: normal;
   font-display: swap;
-  src: url('/fonts/GTWalsheim-Regular.otf') format('opentype');
+  src: url('/fonts/GTWalsheim-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'GT Walsheim';
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+  src: url('/fonts/GTWalsheim-MediumOblique.woff2') format('woff2');
 }
 @font-face {
   font-family: 'GT Walsheim';
   font-weight: 700;
   font-style: normal;
   font-display: swap;
-  src: url('/fonts/GTWalsheim-Bold.otf') format('opentype');
+  src: url('/fonts/GTWalsheim-Bold.woff2') format('woff2');
 }
 @font-face {
   font-family: 'GT Walsheim';
   font-weight: 800;
   font-style: normal;
   font-display: swap;
-  src: url('/fonts/GTWalsheim-UltraBold.otf') format('opentype');
+  src: url('/fonts/GTWalsheim-UltraBold.woff2') format('woff2');
 }
 @font-face {
   font-family: 'GT Walsheim';
   font-weight: 800;
   font-style: italic;
   font-display: swap;
-  src: url('/fonts/GTWalsheim-UltraBoldOblique.otf') format('opentype');
+  src: url('/fonts/GTWalsheim-UltraBoldOblique.woff2') format('woff2');
 }
 
 /* The design's Light palette. Swapping these six values to the design's

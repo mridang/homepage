@@ -26,6 +26,10 @@ const socials = [
   <div class="screen">
     <header class="masthead">
       <div class="logo">MRIDA<span class="logo-italic">NG</span></div>
+      <div class="pronunciation">
+        <span class="pos">n.</span>
+        <span class="ipa">/mriˈdɑːːŋ/</span>
+      </div>
     </header>
 
     <main class="lede">
@@ -81,13 +85,15 @@ const socials = [
     </footer>
   </div>
 
-  <script is:inline>
+  <script>
+    // Processed (not is:inline) so Astro's CSP hashes it. Assembles the
+    // mailto from split parts so the address never appears in the HTML.
     (function () {
-      var a = document.getElementById('contact-email');
+      const a = document.getElementById('contact-email');
       if (!a) return;
-      var user = ['cont', 'act'].join('');
-      var domain = ['mrida', 'ng'].join('.');
-      a.href = 'mailto:' + user + '@' + domain;
+      const user = ['cont', 'act'].join('');
+      const domain = ['mrida', 'ng'].join('.');
+      a.setAttribute('href', 'mailto:' + user + '@' + domain);
       a.hidden = false;
     })();
   </script>
@@ -104,8 +110,9 @@ const socials = [
 
   .masthead {
     display: flex;
-    align-items: center;
-    justify-content: flex-start;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
   }
 
   .logo {
@@ -119,6 +126,28 @@ const socials = [
 
   .logo-italic {
     font-style: italic;
+  }
+
+  .pronunciation {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 11px 5px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    font-size: clamp(12px, 0.95vw, 14px);
+    letter-spacing: 0.01em;
+    color: var(--muted);
+  }
+
+  .pronunciation .pos {
+    font-weight: 500;
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .pronunciation .ipa {
+    font-weight: 400;
   }
 
   .lede {

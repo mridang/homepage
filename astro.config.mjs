@@ -27,6 +27,28 @@ export default defineConfig({
   session: {
     driver: sessionDrivers.null(),
   },
+  // Content-Security-Policy. Astro hashes its own inlined <style> and
+  // processed <script> and injects them into style-src/script-src; we add
+  // 'self' (for the hashed-then-externalised assets) and lock everything
+  // else down. frame-ancestors is also enforced via X-Frame-Options in
+  // src/middleware.ts since <meta>-delivered CSP ignores it.
+  security: {
+    csp: {
+      algorithm: 'SHA-256',
+      directives: [
+        "default-src 'self'",
+        "img-src 'self' data:",
+        "font-src 'self'",
+        "connect-src 'self'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+        "object-src 'none'",
+      ],
+      scriptDirective: { resources: ["'self'"] },
+      styleDirective: { resources: ["'self'"] },
+    },
+  },
   vite: {
     plugins: [tailwindcss()],
   },

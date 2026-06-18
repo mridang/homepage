@@ -1,26 +1,32 @@
-// Generates the full favicon set + the OpenGraph image from GT Walsheim.
+// Generates the favicon set + OpenGraph image from GT Walsheim, and the
+// served woff2 fonts from the OTF sources in assets/fonts/.
 //
 // Glyphs are outlined to vector paths with opentype.js so the output
 // renders identically without the font installed, then rasterised with
-// sharp. One-off generator — the deps are intentionally NOT in
-// package.json (they'd bloat every CI install). To regenerate:
+// sharp; fonts are compressed to woff2 with wawoff2. One-off generator —
+// the deps are intentionally NOT in package.json (they'd bloat every CI
+// install). To regenerate:
 //
-//   npm i --no-save opentype.js sharp png-to-ico
+//   npm i --no-save opentype.js sharp png-to-ico wawoff2
 //   node scripts/generate-favicons.mjs
 //
 // Outputs land in public/ (favicon.svg/.ico, sized PNGs, apple-touch,
-// mask-icon.svg, og.png). No PWA manifest/icons — not an installable app.
+// mask-icon.svg, og.png, fonts/*.woff2). No PWA manifest/icons — not an
+// installable app.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import opentype from 'opentype.js';
 import sharp from 'sharp';
 import pngToIco from 'png-to-ico';
+import wawoff2 from 'wawoff2';
 
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const pub = path.join(root, 'public');
-const fontsDir = path.join(pub, 'fonts');
+// OTF sources live outside public/ (they are build inputs, not served).
+// The browser is served the woff2 conversions written into public/fonts.
+const fontsDir = path.join(root, 'assets', 'fonts');
 
 const INK = '#14161c';
 const ACCENT = '#1a23ff';
@@ -144,4 +150,13 @@ out('og.png', await png(og()).toBuffer());
 // installable PWA, and a manifest with icons + display:standalone is what
 // makes browsers offer "Install".
 
-console.log('Generated favicon set + og.png into public/');
+// ---- Convert every OTF source to woff2 (what the browser is served). ----
+const woffDir = path.join(pub, 'fonts');
+mkdirSync(woffDir, { recursive: true });
+for (const file of readdirSync(fontsDir).filter((f) => f.endsWith('.otf'))) {
+  const otf = readFileSync(path.join(fontsDir, file));
+  const woff2 = await wawoff2.compress(otf);
+  writeFileSync(path.join(woffDir, file.replace(/\.otf$/, '.woff2')), woff2);
+}
+
+console.log('Generated favicon set + og.png + woff2 fonts into public/');
