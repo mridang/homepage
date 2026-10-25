@@ -25,22 +25,22 @@
     "vite": "^7.3.2"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^13.7.0",
-    "astro": "^6.4.8"
+    "@astrojs/cloudflare": "^14.4.2",
+    "astro": "^7.4.2"
   },
   "devDependencies": {
-    "@eslint/compat": "^2.1.0",
-    "@mridang/eslint-defaults": "^1.6.3",
-    "@tailwindcss/vite": "^4.3.1",
-    "@types/node": "^24.13.1",
-    "cypress": "^14.5.4",
-    "eslint": "^9.39.4",
-    "eslint-plugin-astro": "^1.7.0",
-    "knip": "^6.17.1",
-    "prettier": "^3.8.3",
-    "prettier-plugin-astro": "^0.14.1",
+    "@eslint/compat": "^2.1.1",
+    "@mridang/eslint-defaults": "^1.7.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.5",
+    "cypress": "^16.2.0",
+    "eslint": "^10.13.0",
+    "eslint-plugin-astro": "^3.2.1",
+    "knip": "^6.42.1",
+    "prettier": "^3.9.10",
+    "prettier-plugin-astro": "^1.1.1",
     "tailwindcss": "^4.3.1",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "wrangler": "^4.101.0"
   }
 }
