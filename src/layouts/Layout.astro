@@ -4,6 +4,7 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
+  noindex?: boolean;
 }
 
 const SITE_URL = 'https://mrida.ng';
@@ -31,8 +32,14 @@ const SOCIAL_PROFILES = [
   'https://medium.com/@mridang.agarwalla',
 ];
 
-const { title = DEFAULT_TITLE, description = DEFAULT_DESCRIPTION } =
-  Astro.props;
+const {
+  title = DEFAULT_TITLE,
+  description = DEFAULT_DESCRIPTION,
+  noindex = false,
+} = Astro.props;
+const ROBOTS = noindex
+  ? 'noindex, nofollow'
+  : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
 
 const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 const ogImage = new URL('/og.png', SITE_URL).href;
@@ -61,10 +68,7 @@ const jsonLd = {
     <meta name="description" content={description} />
     <meta name="keywords" content={KEYWORDS} />
     <meta name="author" content="Mridang Agarwalla" />
-    <meta
-      name="robots"
-      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
-    />
+    <meta name="robots" content={ROBOTS} />
     <meta name="theme-color" content="#1a23ff" />
     <meta name="color-scheme" content="light" />
     <link rel="canonical" href={canonical} />
