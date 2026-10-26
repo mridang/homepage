@@ -8,7 +8,7 @@ const PAGE_CACHE_CONTROL = 'public, max-age=300';
  */
 export function withPageCache(request: Request, response: Response): Response {
   if (
-    request.method !== 'GET' ||
+    (request.method !== 'GET' && request.method !== 'HEAD') ||
     new URL(request.url).pathname !== '/' ||
     response.status !== 200
   ) {

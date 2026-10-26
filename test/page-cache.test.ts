@@ -12,6 +12,14 @@ void test('the home page is public for five minutes', () => {
   assert.equal(response.headers.get('Cache-Control'), 'public, max-age=300');
 });
 
+void test('a HEAD request gets the same rule as a GET', () => {
+  const response = withPageCache(
+    new Request('https://mrida.ng/', { method: 'HEAD' }),
+    page(),
+  );
+  assert.equal(response.headers.get('Cache-Control'), 'public, max-age=300');
+});
+
 void test('other paths, methods and statuses keep their own cache rule', () => {
   const other = withPageCache(
     new Request('https://mrida.ng/csp/reports'),
