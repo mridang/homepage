@@ -1,6 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
+// Nothing on this page varies per request, so it is rendered once at build
+// time and served from Workers assets without running the Worker. That is
+// also why there is no Server-Timing or rate limiting here: no Worker code
+// runs for this route, so that is deliberate, not an omission.
+export const prerender = true;
+
 // Footer social links. Icon paths are the design's own marks, inlined so
 // they inherit currentColor for the hover state.
 const socials = [

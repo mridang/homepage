@@ -1,19 +1,13 @@
 import { defineMiddleware } from 'astro:middleware';
+import { SECURITY_HEADERS } from './headers';
 
-// Security headers for the server-rendered responses. The public/_headers
-// file only applies to static asset responses served by the ASSETS
-// binding — it does NOT cover the Worker-generated HTML — so the page
-// itself needs these set here.
+// Security headers for any response the Worker still produces (404s and
+// other non-prerendered routes). The page itself is prerendered and served
+// from Workers assets, which take their headers from public/_headers.
 export const onRequest = defineMiddleware(async (_context, next) => {
   const response = await next();
-  const headers = response.headers;
-  headers.set('X-Content-Type-Options', 'nosniff');
-  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  headers.set('X-Frame-Options', 'DENY');
-  headers.set(
-    'Strict-Transport-Security',
-    'max-age=31536000; includeSubDomains',
-  );
-  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+    response.headers.set(name, value);
+  }
   return response;
 });
