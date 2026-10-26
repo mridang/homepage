@@ -65,3 +65,11 @@ export const DISCOVERY_PATHS: ReadonlySet<string> = new Set([
   '/robots.txt',
   '/sitemap.xml',
 ]);
+
+/**
+ * A cache rule for pages that differ from the default `private, no-cache`,
+ * keyed by path. The home page is public and the same for everyone.
+ */
+export const PAGE_CACHE_RULES: Readonly<Record<string, string>> = {
+  '/': 'public, max-age=300',
+};

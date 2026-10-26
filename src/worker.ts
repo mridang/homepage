@@ -12,15 +12,11 @@
 
 import { handle } from '@astrojs/cloudflare/handler';
 import { serve } from './lib/core/http';
-import { withPageCache } from './page-cache';
 
 /** The Worker itself. */
 const handler: ExportedHandler<Record<string, unknown>> = {
   async fetch(request, env, ctx) {
-    return withPageCache(
-      request,
-      await serve(request, env, ctx, { app: { fetch: handle } }),
-    );
+    return serve(request, env, ctx, { app: { fetch: handle } });
   },
 };
 
