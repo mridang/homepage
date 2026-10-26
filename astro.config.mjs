@@ -2,11 +2,12 @@
 import { defineConfig, sessionDrivers } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
+import { CSP_REPORT_DIRECTIVES } from './src/lib/core/http/reporting.ts';
 
-// Single-page personal homepage on Cloudflare Workers. `output: 'server'`
-// keeps non-prerendered routes (404s) on the Worker; the one page opts in to
-// prerendering and is served from assets. The Cloudflare adapter emits the worker
-// entry + hashed assets into dist/.
+// Single-page personal homepage, fully server-rendered on Cloudflare
+// Workers. `output: 'server'` makes every route SSR through the Worker
+// (src/worker.ts wraps Astro's handler in the shared HTTP pipeline), and the
+// Cloudflare adapter emits the worker entry + hashed assets into dist/.
 export default defineConfig({
   site: 'https://mrida.ng',
   output: 'server',
@@ -30,11 +31,9 @@ export default defineConfig({
   // Content-Security-Policy. Astro hashes its own inlined <style> and
   // processed <script> and injects them into style-src/script-src; we add
   // 'self' (for the hashed-then-externalised assets) and lock everything
-  // else down. frame-ancestors is also enforced via X-Frame-Options in
-  // src/middleware.ts and public/_headers since <meta>-delivered CSP ignores it.
-  // The CSP stays a <meta> tag: Astro only exposes the hashes for a
-  // prerendered page through that tag, so there is no supported way to move
-  // them into a real header; _headers adds a frame-ancestors header instead.
+  // else down. Astro sends the policy as a real response header on these
+  // server-rendered pages (no <meta> tag), so frame-ancestors and the report
+  // directives apply; the shared pipeline adds Reporting-Endpoints.
   security: {
     csp: {
       algorithm: 'SHA-256',
@@ -47,6 +46,7 @@ export default defineConfig({
         "form-action 'self'",
         "frame-ancestors 'none'",
         "object-src 'none'",
+        ...CSP_REPORT_DIRECTIVES,
       ],
       scriptDirective: { resources: ["'self'"] },
       styleDirective: { resources: ["'self'"] },

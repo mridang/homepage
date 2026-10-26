@@ -1,23 +1,19 @@
-# Cloudflare Workers Assets header rules.
+# Cloudflare Workers Assets header rules for static files. They bypass the
+# Worker, so the security headers it adds to pages are repeated here (a test
+# keeps the two lists in step). Later, more specific rules add to these. They
+# also override OpenNext's default `max-age=0, must-revalidate` on assets.
+# The same in every app.
 
-# Security headers for the prerendered page and every static asset (Workers
-# assets answer these without running the Worker). src/middleware.ts sets the
-# same values for Worker-rendered responses such as 404s, and
-# src/headers.test.ts keeps the two in step.
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  X-Frame-Options: DENY
-  Content-Security-Policy: frame-ancestors 'none'
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+  Content-Security-Policy: frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  X-Frame-Options: DENY
+  Origin-Agent-Cluster: ?1
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-site
-  Origin-Agent-Cluster: ?1
-
-# The prerendered HTML page.
-/
-  Cache-Control: public, max-age=300
 
 # Content-hashed build output — the filename changes whenever the bytes
 # change, so it is safe to cache forever.
@@ -29,8 +25,8 @@
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Un-hashed public files — cache for a day; they change rarely. Icons are
-# loaded by other sites and browsers on purpose, so they are cross-origin.
+# Un-hashed public files — cache for a day; they change rarely. The icons and
+# the social card are also files other sites and browsers load on purpose.
 /favicon.svg
   Cache-Control: public, max-age=86400
   Cross-Origin-Resource-Policy: cross-origin
@@ -42,4 +38,8 @@
   Cross-Origin-Resource-Policy: cross-origin
 /*.png
   Cache-Control: public, max-age=86400
+  Cross-Origin-Resource-Policy: cross-origin
+/robots.txt
+  Cross-Origin-Resource-Policy: cross-origin
+/sitemap.xml
   Cross-Origin-Resource-Policy: cross-origin

@@ -12,7 +12,7 @@
     "cf-typegen": "wrangler types",
     "deploy": "astro build && wrangler deploy --config dist/server/wrangler.json",
     "format": "prettier --write .",
-    "test": "node --test src/headers.test.ts",
+    "test": "node --import ./test/register.mjs --test \"test/**/*.test.ts\"",
     "format:check": "prettier --check .",
     "lint": "npx eslint .",
     "lint:fix": "npx eslint . --fix",

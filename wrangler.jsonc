@@ -2,12 +2,10 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "homepage",
   "compatibility_date": "2026-05-01",
-  "compatibility_flags": ["nodejs_compat"],
-  // `main` and the `ASSETS` binding are injected by @astrojs/cloudflare's
-  // Vite plugin at build time (it points `main` at its own SSR entrypoint
-  // and bundles the worker + hashed assets into dist/). Setting them here
-  // would make the Cloudflare Vite plugin try to resolve a dist/ file that
-  // doesn't exist yet, so we deliberately leave them out.
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  // The Worker entry: Astro's handler wrapped in the shared HTTP pipeline.
+  "main": "src/worker.ts",
+  // The `ASSETS` binding is injected by @astrojs/cloudflare at build time.
 
   // Cloudflare auto-routes the Worker to the colo closest to the viewer.
   "placement": { "mode": "smart" },
@@ -28,4 +26,50 @@
   // succeed.
   "workers_dev": false,
   "routes": [{ "pattern": "mrida.ng", "custom_domain": true }],
+  // The release id, so cached pages are keyed to the release that made them.
+  "version_metadata": { "binding": "CF_VERSION_METADATA" },
+  // Cloudflare Workers Rate Limiting: the first line of defence, checked in the
+  // Worker before the app is touched (src/lib/core/http/edge-limits.ts). A page
+  // served from the edge copy still counts. Limits are per Cloudflare location
+  // and eventually consistent: a cost guard, not an accounting system.
+  // namespace_id is account-wide and shared by every Worker that uses the same
+  // number, hence the distinctive 74xx range.
+  "ratelimits": [
+    // pictures, per person (unused here, kept so every app declares the same set)
+    {
+      "name": "RL_COVER",
+      "namespace_id": "7401",
+      "simple": { "limit": 600, "period": 60 },
+    },
+    // the rest of the API, per person
+    {
+      "name": "RL_API",
+      "namespace_id": "7402",
+      "simple": { "limit": 120, "period": 60 },
+    },
+    // well-known documents, health and crawler files, per address
+    {
+      "name": "RL_DISCOVERY",
+      "namespace_id": "7403",
+      "simple": { "limit": 120, "period": 60 },
+    },
+    // browser reports (what the CSP blocked), per address
+    {
+      "name": "RL_REPORTS",
+      "namespace_id": "7404",
+      "simple": { "limit": 60, "period": 60 },
+    },
+    // pages, per address
+    {
+      "name": "RL_SITE",
+      "namespace_id": "7405",
+      "simple": { "limit": 300, "period": 60 },
+    },
+    // everything, per address
+    {
+      "name": "RL_ADDRESS",
+      "namespace_id": "7406",
+      "simple": { "limit": 900, "period": 60 },
+    },
+  ],
 }
