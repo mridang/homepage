@@ -5,14 +5,17 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "typecheck": "astro check",
+    "build": "astro check && astro build",
     "preview": "astro preview",
     "start": "astro dev",
     "astro": "astro",
-    "cf-typegen": "wrangler types",
-    "deploy": "astro build && wrangler deploy --config dist/server/wrangler.json",
+    "cf-typegen": "wrangler types && prettier --write worker-configuration.d.ts",
+    "deploy": "npm run build && wrangler deploy --config dist/server/wrangler.json",
+    "test": "jest --verbose --config=jest.config.mjs",
+    "test:watch": "npm run test -- --watch",
+    "test:debug": "jest --verbose --config=jest.config.mjs --detectOpenHandles",
     "format": "prettier --write .",
-    "test": "node --import ./test/register.mjs --test \"test/**/*.test.ts\"",
     "format:check": "prettier --check .",
     "lint": "npx eslint .",
     "lint:fix": "npx eslint . --fix",
@@ -27,18 +30,24 @@
     "astro": "^7.3.2"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.12",
     "@eslint/compat": "^2.1.0",
-    "@mridang/eslint-defaults": "^1.6.3",
+    "@jest/globals": "^30.5.2",
+    "@mridang/eslint-defaults": "^1.7.0",
     "@tailwindcss/vite": "^4.3.1",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.13.1",
     "cypress": "^16.2.0",
     "eslint": "^9.39.4",
     "eslint-plugin-astro": "^1.7.0",
+    "jest": "^30.5.2",
+    "jest-junit": "^17.0.0",
     "knip": "^6.17.1",
     "prettier": "^3.8.3",
     "prettier-plugin-astro": "^0.14.1",
     "tailwindcss": "^4.3.1",
+    "ts-jest": "^29.4.15",
     "typescript": "^6.0.3",
-    "wrangler": "^4.101.0"
+    "wrangler": "^4.152.0"
   }
 }

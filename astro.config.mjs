@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig, sessionDrivers } from 'astro/config';
+import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
 import { CSP_REPORT_DIRECTIVES } from './src/lib/core/http/reporting.ts';
@@ -16,7 +16,6 @@ export default defineConfig({
   // share a cached stylesheet with anyway.
   build: { inlineStylesheets: 'always' },
   adapter: cloudflare({
-    platformProxy: { enabled: true },
     // Optimise images at build time instead of binding to the runtime
     // Cloudflare Images product — the homepage has no need for on-the-fly
     // transforms, and this keeps the Worker free of an IMAGES binding.
@@ -24,10 +23,8 @@ export default defineConfig({
   }),
   // The adapter wires a Cloudflare KV `SESSION` binding by default (which
   // would need a provisioned KV namespace to deploy). This site has no
-  // sessions, so use the no-op driver to drop the binding entirely.
-  session: {
-    driver: sessionDrivers.null(),
-  },
+  // sessions, so turn them off to drop the binding entirely.
+  session: false,
   // Content-Security-Policy. Astro hashes its own inlined <style> and
   // processed <script> and injects them into style-src/script-src; we add
   // 'self' (for the hashed-then-externalised assets) and lock everything
@@ -46,7 +43,7 @@ export default defineConfig({
         "form-action 'self'",
         "frame-ancestors 'none'",
         "object-src 'none'",
-        ...CSP_REPORT_DIRECTIVES,
+        .../** @type {`report-to${string}`[]} */ (CSP_REPORT_DIRECTIVES),
       ],
       scriptDirective: { resources: ["'self'"] },
       styleDirective: { resources: ["'self'"] },

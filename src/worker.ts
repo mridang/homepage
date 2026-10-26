@@ -15,7 +15,7 @@ import { serve } from './lib/core/http';
 import { withPageCache } from './page-cache';
 
 /** The Worker itself. */
-const handler: ExportedHandler<Env> = {
+const handler: ExportedHandler<Record<string, unknown>> = {
   async fetch(request, env, ctx) {
     return withPageCache(
       request,
