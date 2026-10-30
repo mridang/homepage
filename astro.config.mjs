@@ -2,6 +2,10 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
+import {
+  BEACON_CONNECT_SOURCE,
+  BEACON_SCRIPT_SOURCE,
+} from './src/lib/analytics.ts';
 import { CSP_REPORT_DIRECTIVES } from './src/lib/core/http/reporting.ts';
 
 // Single-page personal homepage, fully server-rendered on Cloudflare
@@ -38,14 +42,14 @@ export default defineConfig({
         "default-src 'self'",
         "img-src 'self' data:",
         "font-src 'self'",
-        "connect-src 'self'",
+        `connect-src 'self' ${BEACON_CONNECT_SOURCE}`,
         "base-uri 'self'",
         "form-action 'self'",
         "frame-ancestors 'none'",
         "object-src 'none'",
         .../** @type {`report-to${string}`[]} */ (CSP_REPORT_DIRECTIVES),
       ],
-      scriptDirective: { resources: ["'self'"] },
+      scriptDirective: { resources: ["'self'", BEACON_SCRIPT_SOURCE] },
       styleDirective: { resources: ["'self'"] },
     },
   },
