@@ -1,23 +1,34 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "homepage",
-  "compatibility_date": "2026-05-01",
-  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   // The Worker entry: Astro's handler wrapped in the shared HTTP pipeline.
   "main": "src/worker.ts",
-  // The `ASSETS` binding is injected by @astrojs/cloudflare at build time.
-
+  "account_id": "779037e608ab1102679ef8b1bd499d49",
+  "compatibility_date": "2026-05-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   // Cloudflare auto-routes the Worker to the colo closest to the viewer.
   "placement": { "mode": "smart" },
-  // Full Workers Observability: logs, metrics, invocation traces — all
-  // sampled at 100%. The volume on a single-page site is tiny.
+  // Wrangler's own usage telemetry for this project (anonymous CLI usage; the
+  // setting overrides each developer's personal preference).
+  "send_metrics": true,
+  // Workers Observability, everything on at 100% (the volume is tiny and the data
+  // is what debugging needs): the app's own log lines, the automatic per-request
+  // invocation logs, distributed traces, and real-time Issues. Query strings are
+  // stripped from the URLs in logs and traces, because they can carry search
+  // text, addresses and sign-in codes.
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1,
+    "redact_query_string": true,
+    "issues": { "enabled": true },
     "logs": {
       "enabled": true,
       "head_sampling_rate": 1,
       "invocation_logs": true,
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 1,
     },
   },
   // Custom domain — the workers.dev subdomain is disabled so the
@@ -26,6 +37,10 @@
   // succeed.
   "workers_dev": false,
   "routes": [{ "pattern": "mrida.ng", "custom_domain": true }],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "dist/client",
+  },
   // The release id, so cached pages are keyed to the release that made them.
   "version_metadata": { "binding": "CF_VERSION_METADATA" },
   // Cloudflare Workers Rate Limiting: the first line of defence, checked in the
