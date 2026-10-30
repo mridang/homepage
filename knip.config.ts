@@ -5,7 +5,7 @@ export default {
     /^@semantic-release\//,
     /^@astrojs\//,
     /^@tailwindcss\//,
-    /^cloudflare$/,
+    'cloudflare',
   ],
   tags: ['+public'],
 };
