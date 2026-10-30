@@ -69,3 +69,23 @@ body {
   font-family: 'GT Walsheim', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+@layer base {
+  /* Tailwind 4 stopped giving buttons the pointer cursor, so a button that did
+   * not ask for it looked inert under the mouse. Anything clickable gets the
+   * hand; a disabled one keeps the arrow, which says it does nothing. */
+  button:not(:disabled),
+  summary,
+  select:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  input:is(
+      [type='button'],
+      [type='submit'],
+      [type='reset'],
+      [type='checkbox'],
+      [type='radio'],
+      [type='file']
+    ):not(:disabled) {
+    cursor: pointer;
+  }
+}
