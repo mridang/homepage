@@ -48,7 +48,7 @@ function load(): Promise<ContextTracing | null> {
   return import(
     /* webpackIgnore: true */ /* turbopackIgnore: true */ 'cloudflare:workers'
   ).then(
-    (workers) => (loaded = workers.tracing as unknown as ContextTracing),
+    (workers) => (loaded = workers.tracing),
     () => (loaded = null),
   );
 }
