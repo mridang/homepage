@@ -87,4 +87,7 @@
       "simple": { "limit": 900, "period": 60 },
     },
   ],
+  // Uploads source maps with the Worker so stack traces in logs and traces
+  // point at the original source.
+  "upload_source_maps": true,
 }
