@@ -44,3 +44,44 @@ yarn-error.log*
 
 # Junit / coverage output
 /.out/
+
+# Agent and IDE directories
+/.agents/
+/.agent/
+/.cursor/
+/.codex/
+/.gemini/
+/.windsurf/
+/.aider/
+/.continue/
+/.cline/
+/.roo/
+/.opencode/
+/.copilot/
+/.kiro/
+/.amazonq/
+/.junie/
+/.zed/
+/.trae/
+/.qodo/
+/.augment/
+/.goose/
+/.crush/
+/.factory/
+/.sourcegraph/
+/.claude-flow/
+/.swarm/
+/.serena/
+/.superpowers/
+/.specify/
+/.taskmaster/
+/.codeium/
+/.tabnine/
+/.devin/
+/.openhands/
+/.ai/
+/.llm/
+/.mcp/
+/.cursorrules
+/.clinerules
+/.windsurfrules
