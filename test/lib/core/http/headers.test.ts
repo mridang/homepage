@@ -253,10 +253,16 @@ describe('SECURITY_HEADERS', () => {
     expect(SECURITY_HEADERS['Origin-Agent-Cluster']).toBe('?1');
   });
 
-  it('names no permissions feature that browsers have removed', () => {
-    expect(SECURITY_HEADERS['Permissions-Policy']).not.toContain(
-      'interest-cohort',
-    );
+  it.each(['clipboard-write', 'interest-cohort', 'camera'])(
+    'disables %s with an empty allowlist',
+    (feature) => {
+      expect(SECURITY_HEADERS['Permissions-Policy']).toContain(`${feature}=()`);
+    },
+  );
+
+  it('sends the DNS prefetch and cross-domain policy headers', () => {
+    expect(SECURITY_HEADERS['X-DNS-Prefetch-Control']).toBe('off');
+    expect(SECURITY_HEADERS['X-Permitted-Cross-Domain-Policies']).toBe('none');
   });
 });
 
