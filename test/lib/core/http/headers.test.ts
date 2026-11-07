@@ -253,7 +253,7 @@ describe('SECURITY_HEADERS', () => {
     expect(SECURITY_HEADERS['Origin-Agent-Cluster']).toBe('?1');
   });
 
-  it.each(['clipboard-write', 'interest-cohort', 'camera'])(
+  it.each(['clipboard-write', 'interest-cohort', 'sync-xhr', 'camera'])(
     'disables %s with an empty allowlist',
     (feature) => {
       expect(SECURITY_HEADERS['Permissions-Policy']).toContain(`${feature}=()`);

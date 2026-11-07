@@ -24,9 +24,9 @@ export const SECURITY_HEADERS: Readonly<Record<string, string>> = {
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   // Talk to HTTPS only, for two years, on this host and its subdomains.
   'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
-  // Turn off every powerful browser feature the page does not use (all 28 that OWASP lists).
+  // Turn off every powerful browser feature the page does not use (the list OWASP gives).
   'Permissions-Policy':
-    'accelerometer=(), autoplay=(), camera=(), clipboard-read=(), clipboard-write=(), cross-origin-isolated=(), display-capture=(), encrypted-media=(), fullscreen=(), gamepad=(), geolocation=(), gyroscope=(), hid=(), idle-detection=(), interest-cohort=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), unload=(), usb=(), web-share=(), xr-spatial-tracking=()',
+    'accelerometer=(), autoplay=(), camera=(), clipboard-read=(), clipboard-write=(), cross-origin-isolated=(), display-capture=(), encrypted-media=(), fullscreen=(), gamepad=(), geolocation=(), gyroscope=(), hid=(), idle-detection=(), interest-cohort=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), sync-xhr=(), unload=(), usb=(), web-share=(), xr-spatial-tracking=()',
   // Do not resolve the hosts of links ahead of time.
   'X-DNS-Prefetch-Control': 'off',
   // Keep Flash and PDF plugins from loading policy files from this host.
