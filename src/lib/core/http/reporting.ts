@@ -1,4 +1,5 @@
 /**
+ * @file Where browsers send reports about this site, and the names the policies use for them.
  * @packageDocumentation
  *
  * Where browsers send reports about this site: what the Content Security Policy

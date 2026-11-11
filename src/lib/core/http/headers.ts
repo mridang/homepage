@@ -1,4 +1,5 @@
 /**
+ * @file The response headers every page and API answer carries, and the rules for applying them.
  * @packageDocumentation
  *
  * The response headers every page and API answer carries: browser security
@@ -43,7 +44,16 @@ export const SECURITY_HEADERS: Readonly<Record<string, string>> = {
   'Cross-Origin-Opener-Policy': 'same-origin',
 };
 
-/** The `Cross-Origin-Resource-Policy` for a path. */
+/**
+ * The `Cross-Origin-Resource-Policy` for a path. Open files may be loaded by any
+ * site; everything else is limited to this site.
+ * @param pathname - The request path.
+ * @returns `'cross-origin'` for open files, otherwise `'same-site'`.
+ * @example
+ * ```ts
+ * resourcePolicyFor('/og.png'); // 'cross-origin'
+ * ```
+ */
 export function resourcePolicyFor(pathname: string): string {
   return OPEN_FILES.test(pathname) ? 'cross-origin' : 'same-site';
 }
@@ -54,6 +64,12 @@ export function resourcePolicyFor(pathname: string): string {
  * assistant that opens it in a popup finishes sign-in through the window that
  * opened it, and `same-origin` would sever that link the moment the popup
  * lands here. The screen holds nothing a window that opened it could read.
+ * @param pathname - The request path.
+ * @returns `'unsafe-none'` for the approval screen, otherwise the site's policy.
+ * @example
+ * ```ts
+ * openerPolicyFor('/oauth/authorize'); // 'unsafe-none'
+ * ```
  */
 export function openerPolicyFor(pathname: string): string {
   return pathname === '/oauth/authorize'
@@ -68,6 +84,13 @@ type HeaderPair = [string, string];
  * A copy of `headers` with each of `replacements` set, replacing any header of
  * the same name. The original is left as it was (a `Response` from the app is
  * read-only anyway).
+ * @param headers - The headers to copy.
+ * @param replacements - The header names and values to set, keyed by name.
+ * @returns A new set of headers with the replacements applied.
+ * @example
+ * ```ts
+ * replacingHeaders(new Headers({ 'x-a': '1' }), { 'X-A': '2' }).get('x-a'); // '2'
+ * ```
  */
 export function replacingHeaders(
   headers: Headers,
@@ -81,7 +104,17 @@ export function replacingHeaders(
 /** Tells crawlers not to index a page or follow its links. */
 const NOINDEX: HeaderPair = ['X-Robots-Tag', 'noindex, nofollow'];
 
-/** Cache rules for the few responses that want something other than the default. */
+/**
+ * Cache rules for the few responses that want something other than the default.
+ * @param pathname - The request path.
+ * @param response - The response the app produced.
+ * @param rules - The app's own cache rules, keyed by path.
+ * @returns The `Cache-Control` value to set, or null to keep the response's own.
+ * @example
+ * ```ts
+ * cacheControlFor('/about', new Response('', { headers: { 'content-type': 'text/html' } }), {}); // 'private, no-cache'
+ * ```
+ */
 function cacheControlFor(
   pathname: string,
   response: Response,
@@ -112,6 +145,14 @@ function cacheControlFor(
  * The response with the site's security headers added and, where it has one, a
  * better cache rule. Responses that set their own security headers (the
  * sign-in approval page) keep them.
+ * @param request - The request that produced the response.
+ * @param response - The response the app produced.
+ * @param pageCacheRules - The app's cache rules for pages, keyed by path.
+ * @returns A new response carrying the site's headers.
+ * @example
+ * ```ts
+ * const response = applyResponseHeaders(new Request('https://example.com/'), new Response('ok'));
+ * ```
  */
 export function applyResponseHeaders(
   request: Request,

@@ -1,4 +1,5 @@
 /**
+ * @file The edge rate limits: which class each request belongs to, and the refusal sent to a caller over a limit.
  * @packageDocumentation
  *
  * The first line of defence against floods and runaway scripts: Cloudflare's
@@ -119,6 +120,12 @@ export interface EdgeLimits {
 /**
  * Which of the {@link GenericClass}es a path belongs to, or undefined for a
  * static file that is not counted at all.
+ * @param pathname - The request path.
+ * @returns The class of the path, or undefined when the path is a static file.
+ * @example
+ * ```ts
+ * genericClass('/api/x'); // 'api'
+ * ```
  */
 export function genericClass(pathname: string): GenericClass | undefined {
   if (STATIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
@@ -139,7 +146,15 @@ export function genericClass(pathname: string): GenericClass | undefined {
   return 'site';
 }
 
-/** The limits of an app that has only the {@link GENERIC_CLASSES}. */
+/**
+ * The limits of an app that has only the {@link GENERIC_CLASSES}.
+ * @param sessionCookie - The name of the session cookie, or undefined for an app with no sign-in.
+ * @returns The limits, with every class taken from {@link GENERIC_CLASSES}.
+ * @example
+ * ```ts
+ * const limits = genericLimits('session');
+ * ```
+ */
 export function genericLimits(sessionCookie: string | undefined): EdgeLimits {
   return {
     classes: GENERIC_CLASSES,
@@ -148,7 +163,16 @@ export function genericLimits(sessionCookie: string | undefined): EdgeLimits {
   };
 }
 
-/** A request's `name` cookie, if it has one. */
+/**
+ * Reads one cookie out of a request's `Cookie` header.
+ * @param headers - The request headers.
+ * @param name - The name of the cookie to read.
+ * @returns The cookie's value, or undefined when the cookie is not sent.
+ * @example
+ * ```ts
+ * cookieValue(new Headers({ cookie: 'a=1; session=xyz' }), 'session'); // 'xyz'
+ * ```
+ */
 function cookieValue(headers: Headers, name: string): string | undefined {
   return headers
     .get('cookie')
@@ -158,7 +182,15 @@ function cookieValue(headers: Headers, name: string): string | undefined {
     ?.slice(name.length + 1);
 }
 
-/** The first 32 hex characters of the SHA-256 of `text`: a stable key that reveals nothing. */
+/**
+ * The first 32 hex characters of the SHA-256 of `text`: a stable key that reveals nothing.
+ * @param text - The text to hash, such as a session cookie or a bearer token.
+ * @returns The first 16 bytes of the digest as 32 lowercase hex characters.
+ * @example
+ * ```ts
+ * const key = await digestKey('session-cookie'); // 32 hex characters
+ * ```
+ */
 async function digestKey(text: string): Promise<string> {
   const bytes = await crypto.subtle.digest(
     'SHA-256',
@@ -174,6 +206,14 @@ async function digestKey(text: string): Promise<string> {
  * The key a class counts a request under. A person is a hash of the session
  * cookie (falling back to the address when there is none, so a caller with no
  * cookie shares the address's budget), a token is a hash of the bearer token.
+ * @param counted - Who the class counts.
+ * @param headers - The request headers.
+ * @param sessionCookie - The name of the session cookie, if the app has one.
+ * @returns The counter key, prefixed with `p:` for a person, `t:` for a token, or `a:` for an address.
+ * @example
+ * ```ts
+ * await counterKey('address', new Headers({ 'cf-connecting-ip': '192.0.2.7' }), undefined); // 'a:192.0.2.7'
+ * ```
  */
 export async function counterKey(
   counted: Counted,
@@ -200,7 +240,15 @@ export async function counterKey(
   return `a:${clientSubject(headers)}`;
 }
 
-/** Whether `value` is a usable binding. */
+/**
+ * Whether `value` is a usable binding.
+ * @param value - The value to test.
+ * @returns True when the value has a `limit` function.
+ * @example
+ * ```ts
+ * isBinding({ limit: async () => ({ success: true }) }); // true
+ * ```
+ */
 function isBinding(value: unknown): value is RateLimitBinding {
   return (
     typeof value === 'object' &&
@@ -210,7 +258,17 @@ function isBinding(value: unknown): value is RateLimitBinding {
   );
 }
 
-/** Ask a binding whether `key` may go ahead; a missing or failing binding says yes. */
+/**
+ * Asks a binding whether `key` may go ahead; a missing or failing binding says yes.
+ * @param env - The Worker's bindings.
+ * @param binding - The name of the binding to ask.
+ * @param key - The counter key to check.
+ * @returns True when the request may go ahead.
+ * @example
+ * ```ts
+ * await allowed({}, 'RL_SITE', 'a:192.0.2.7'); // true, because the binding is missing
+ * ```
+ */
 async function allowed(
   env: EdgeLimitEnv,
   binding: string,
@@ -221,7 +279,8 @@ async function allowed(
     return true;
   }
   try {
-    return (await candidate.limit({ key })).success;
+    const result = await candidate.limit({ key });
+    return result.success;
   } catch (error) {
     logError({
       event: 'edge-limit.counter-failed',
@@ -242,6 +301,13 @@ const TOO_MANY = 'Too many requests. Wait a moment and try again.';
  * `Retry-After`, and open CORS for the machine-readable ones (their callers
  * are not browsers on our own pages, and a browser client must be able to read
  * the refusal to back off).
+ * @param style - How the refusal is worded.
+ * @param retryAfterSeconds - How long the caller is told to wait, in seconds.
+ * @returns The 429 response.
+ * @example
+ * ```ts
+ * const response = tooManyRequests('text', 60); // response.status is 429
+ * ```
  */
 export function tooManyRequests(
   style: RefusalStyle,
@@ -304,6 +370,14 @@ export function tooManyRequests(
  * A request is counted in its own class and, when the class counts a person or
  * a token (which a caller can make up), in the overall bucket for its address
  * as well.
+ * @param request - The incoming request.
+ * @param env - The Worker's bindings.
+ * @param limits - The classes of the app and how requests are sorted into them.
+ * @returns The 429 response to send, or null when the request may go on.
+ * @example
+ * ```ts
+ * const refusal = await edgeLimitRefusal(request, env, genericLimits(undefined)); // null under the limit
+ * ```
  */
 export async function edgeLimitRefusal(
   request: Request,

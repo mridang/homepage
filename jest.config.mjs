@@ -1,3 +1,6 @@
+/**
+ * @file Jest configuration: ts-jest for the source and the tests, with coverage and JUnit output.
+ */
 export default {
   preset: 'ts-jest/presets/default-esm',
   transform: {

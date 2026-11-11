@@ -1,4 +1,5 @@
 /**
+ * @file The site name and public address shared by the HTTP code.
  * @packageDocumentation
  *
  * What the site calls itself and where it lives, in one place for the shared

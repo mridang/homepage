@@ -1,4 +1,5 @@
 /**
+ * @file What this app adds to the shared edge limits: the request classes it counts beyond the defaults.
  * @packageDocumentation
  *
  * What this app adds to the shared edge code (`edge-limits.ts`, used by

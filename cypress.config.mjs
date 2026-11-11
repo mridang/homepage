@@ -1,3 +1,6 @@
+/**
+ * @file Cypress configuration for the end-to-end tests, run in Chrome.
+ */
 import { defineConfig } from 'cypress';
 
 export default defineConfig({

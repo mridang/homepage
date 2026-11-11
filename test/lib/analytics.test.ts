@@ -1,3 +1,6 @@
+/**
+ * @file Tests the origins of the Cloudflare Web Analytics beacon.
+ */
 import { describe, expect, it } from '@jest/globals';
 
 import { BEACON_CONNECT_SOURCE, BEACON_SCRIPT_SOURCE } from '@/lib/analytics';

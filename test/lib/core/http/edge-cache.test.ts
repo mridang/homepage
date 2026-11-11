@@ -1,3 +1,6 @@
+/**
+ * @file Tests which requests the edge cache may serve and keep.
+ */
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
@@ -38,11 +41,7 @@ describe('isEdgeCacheable', () => {
 
   it('keeps a page for everyone in an app that has no sign-in', () => {
     expect(
-      isEdgeCacheable(
-        get('/', { cookie: 'app_session=abc' }),
-        pages,
-        undefined,
-      ),
+      isEdgeCacheable(get('/', { cookie: 'app_session=abc' }), pages),
     ).toBe(true);
   });
 
@@ -144,6 +143,7 @@ describe('isEdgeCacheable - the query string', () => {
   });
 
   it('never keeps a page for a caller on a loopback address, whatever address it was reached on', () => {
+    // eslint-disable-next-line sonarjs/no-hardcoded-ip -- test fixture
     for (const ip of ['::1', '127.0.0.1', '::ffff:127.0.0.1']) {
       expect(
         isEdgeCacheable(
@@ -221,9 +221,8 @@ describe('the app’s own settings', () => {
     expect(page).toBeDefined();
     expect(isEdgeCacheable(get(`${page}?zz-unknown=1`))).toBe(false);
     const [name] = [...CACHED_QUERY_PARAMS];
-    expect(isEdgeCacheable(get(`${page}${name ? `?${name}=1` : ''}`))).toBe(
-      true,
-    );
+    const suffix = name ? `?${name}=1` : '';
+    expect(isEdgeCacheable(get(`${page}${suffix}`))).toBe(true);
     if (name === undefined) {
       expect(isEdgeCacheable(get(`${page}?x=1`))).toBe(false);
     }

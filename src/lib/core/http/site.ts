@@ -1,4 +1,5 @@
 /**
+ * @file What differs from app to app in the shared HTTP code: pages, cache rules, open files and extra policy.
  * @packageDocumentation
  *
  * What differs from one app to the next in the shared HTTP code (`headers.ts`,

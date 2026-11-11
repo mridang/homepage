@@ -1,4 +1,9 @@
 ---
+// The shared page shell that every page is wrapped in.
+
+/**
+ * @file The shared page shell: the document head, its metadata and its structured data.
+ */
 import '../styles/global.css';
 
 interface Props {
@@ -104,6 +109,7 @@ const jsonLd = {
     <meta name="twitter:image:alt" content={OG_ALT} />
 
     <!-- Structured data -->
+    {/* eslint-disable-next-line react/no-unknown-property -- set:html is Astro's raw-HTML directive */}
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
   <body>

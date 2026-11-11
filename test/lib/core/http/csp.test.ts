@@ -1,3 +1,6 @@
+/**
+ * @file Tests the Content Security Policy builder and its nonce.
+ */
 import { describe, expect, it } from '@jest/globals';
 
 import {
