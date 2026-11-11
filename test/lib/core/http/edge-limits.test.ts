@@ -125,11 +125,10 @@ describe('counterKey', () => {
     expect(
       await counterKey(
         'token',
-        new Headers({ 'cf-connecting-ip': '2001:db8:1:2::9' }),
+        new Headers({ 'cf-connecting-ip': ips.callerV6 }),
         undefined,
       ),
-      // eslint-disable-next-line sonarjs/no-hardcoded-ip -- test fixture
-    ).toBe('a:2001:db8:1:2::/64');
+    ).toBe(ips.counterKeyV6);
   });
 });
 
@@ -249,6 +248,26 @@ describe('tooManyRequests', () => {
     expect(response.headers.get('cache-control')).toBe('no-store');
   });
 });
+
+interface IpFixture {
+  loopbackV6: string;
+  loopbackV4: string;
+  loopbackMapped: string;
+  mappedV4: string;
+  forwardedFor: string;
+  documentationV6: string;
+  linkLocalZoned: string;
+  documentationV6Short: string;
+  callerV6: string;
+  subjectLoopback: string;
+  subjectDocumentation: string;
+  subjectLinkLocal: string;
+  counterKeyV6: string;
+}
+
+const ips = JSON.parse(
+  await readFile(path.join(process.cwd(), 'test/fixtures/ips.json'), 'utf8'),
+) as IpFixture;
 
 const wranglerText = await readFile(
   path.join(process.cwd(), 'wrangler.jsonc'),
