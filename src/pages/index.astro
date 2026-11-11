@@ -33,7 +33,9 @@ const socials = [
       <div className="logo">
         MRIDA<span className="logo-italic">NG</span>
       </div>
-      {/* eslint-disable jsx-a11y/no-noninteractive-tabindex -- keyboard users focus the pronunciation to read its tooltip */}
+      {
+        /* eslint-disable jsx-a11y/no-noninteractive-tabindex -- keyboard users focus the pronunciation to read its tooltip */
+      }
       <div
         className="pronunciation"
         tabIndex="0"
@@ -45,7 +47,9 @@ const socials = [
           …or you can just call me “Mika”. 😅
         </span>
       </div>
-      {/* eslint-enable jsx-a11y/no-noninteractive-tabindex -- end of the disabled element */}
+      {
+        /* eslint-enable jsx-a11y/no-noninteractive-tabindex -- end of the disabled element */
+      }
     </header>
 
     <main className="lede">
@@ -62,25 +66,31 @@ const socials = [
     <footer className="footer">
       <div className="rule"></div>
       <nav className="socials" aria-label="Social and contact links">
-        {socials.map((s) => (
-          <a
-            key={s.label}
-            className="social"
-            href={s.href}
-            aria-label={s.label}
-            target="_blank"
-            rel="me noopener noreferrer"
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d={s.path} />
-            </svg>
-          </a>
-        ))}
-        {/* Email icon. The mailto is assembled by JS so the address never
+        {
+          socials.map((s) => (
+            <a
+              key={s.label}
+              className="social"
+              href={s.href}
+              aria-label={s.label}
+              target="_blank"
+              rel="me noopener noreferrer"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d={s.path} />
+              </svg>
+            </a>
+          ))
+        }
+        {
+          /* Email icon. The mailto is assembled by JS so the address never
              appears in the server-rendered HTML — nothing for a scraper to
              harvest. It starts `hidden` so no-JS clients don't see a dead,
-             unfocusable icon; the script reveals it once it's a real link. */}
-        {/* eslint-disable jsx-a11y/anchor-is-valid, github/a11y-role-supports-aria-props -- the script gives this hidden link its href, and no-JS clients never see it */}
+             unfocusable icon; the script reveals it once it's a real link. */
+        }
+        {
+          /* eslint-disable jsx-a11y/anchor-is-valid, github/a11y-role-supports-aria-props -- the script gives this hidden link its href, and no-JS clients never see it */
+        }
         <a
           id="contact-email"
           className="social"
@@ -89,10 +99,14 @@ const socials = [
           hidden
         >
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"></path>
+            <path
+              d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"
+            ></path>
           </svg>
         </a>
-        {/* eslint-enable jsx-a11y/anchor-is-valid, github/a11y-role-supports-aria-props -- end of the disabled element */}
+        {
+          /* eslint-enable jsx-a11y/anchor-is-valid, github/a11y-role-supports-aria-props -- end of the disabled element */
+        }
       </nav>
     </footer>
   </div>
