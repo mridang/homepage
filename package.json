@@ -1,6 +1,7 @@
 {
   "name": "homepage",
   "version": "0.1.0",
+  "description": "My personal homepage, a single, fully server-rendered page running on Cloudflare Workers.",
   "type": "module",
   "private": true,
   "scripts": {
