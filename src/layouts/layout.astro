@@ -109,13 +109,7 @@ const jsonLd = {
     <meta name="twitter:image:alt" content={OG_ALT} />
 
     <!-- Structured data -->
-    {
-      /* eslint-disable react/no-unknown-property -- set:html is Astro's raw-HTML directive */
-    }
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-    {
-      /* eslint-enable react/no-unknown-property -- end of the raw-HTML element */
-    }
   </head>
   <body>
     <slot />
