@@ -28,49 +28,43 @@ const socials = [
 ---
 
 <Layout>
-  <div className="screen">
-    <header className="masthead">
-      <div className="logo">
-        MRIDA<span className="logo-italic">NG</span>
-      </div>
+  <div class="screen">
+    <header class="masthead">
+      <div class="logo">MRIDA<span class="logo-italic">NG</span></div>
       {
         /* eslint-disable jsx-a11y/no-noninteractive-tabindex -- keyboard users focus the pronunciation to read its tooltip */
       }
-      <div
-        className="pronunciation"
-        tabIndex="0"
-        aria-describedby="call-me-mika"
-      >
-        <span className="pos">n.</span>
-        <span className="ipa">/mriˈdɑːːŋ/</span>
-        <span className="tip" id="call-me-mika" role="tooltip">
-          …or you can just call me “Mika”. 😅
-        </span>
+      <div class="pronunciation" tabindex="0" aria-describedby="call-me-mika">
+        <span class="pos">n.</span>
+        <span class="ipa">/mriˈdɑːːŋ/</span>
+        <span class="tip" id="call-me-mika" role="tooltip"
+          >…or you can just call me “Mika”. 😅</span
+        >
       </div>
       {
         /* eslint-enable jsx-a11y/no-noninteractive-tabindex -- end of the disabled element */
       }
     </header>
 
-    <main className="lede">
-      <h1 className="headline">
-        I build calm, considered software for the web
-        <span className="accent">.</span>
+    <main class="lede">
+      <h1 class="headline">
+        I build calm, considered software for the web<span class="accent"
+          >.</span
+        >
       </h1>
-      <p className="sub">
+      <p class="sub">
         An engineer who designs — clean systems, fast iterations, and interfaces
         that earn their place. Currently building something new.
       </p>
     </main>
 
-    <footer className="footer">
-      <div className="rule"></div>
-      <nav className="socials" aria-label="Social and contact links">
+    <footer class="footer">
+      <div class="rule"></div>
+      <nav class="socials" aria-label="Social and contact links">
         {
           socials.map((s) => (
             <a
-              key={s.label}
-              className="social"
+              class="social"
               href={s.href}
               aria-label={s.label}
               target="_blank"
@@ -93,7 +87,7 @@ const socials = [
         }
         <a
           id="contact-email"
-          className="social"
+          class="social"
           aria-label="Email"
           rel="nofollow"
           hidden
