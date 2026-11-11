@@ -110,9 +110,12 @@ const jsonLd = {
 
     <!-- Structured data -->
     {
-      /* eslint-disable-next-line react/no-unknown-property -- set:html is Astro's raw-HTML directive */
+      /* eslint-disable react/no-unknown-property -- set:html is Astro's raw-HTML directive */
     }
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    {
+      /* eslint-enable react/no-unknown-property -- end of the raw-HTML element */
+    }
   </head>
   <body>
     <slot />
