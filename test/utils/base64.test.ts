@@ -1,3 +1,6 @@
+/**
+ * @file Tests the base64 helpers.
+ */
 import { describe, expect, it } from '@jest/globals';
 
 import {
@@ -25,7 +28,7 @@ describe('base64', () => {
 
 describe('base64 URL-safe', () => {
   it('uses - and _ and leaves off the padding', () => {
-    const bytes = Uint8Array.from([0xfb, 0xff, 0xfe, 0x01]);
+    const bytes = Uint8Array.from([251, 255, 254, 1]);
     expect(bytesToBase64(bytes)).toBe('+//+AQ==');
     expect(bytesToBase64Url(bytes)).toBe('-__-AQ');
   });

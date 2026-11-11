@@ -1,3 +1,6 @@
+/**
+ * @file Astro configuration: server output on Cloudflare Workers, with the Content Security Policy and the Tailwind plugin.
+ */
 // @ts-check
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';

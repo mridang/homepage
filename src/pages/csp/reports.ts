@@ -1,10 +1,11 @@
 /**
+ * @file The route that receives Content Security Policy reports from browsers.
  * Where browsers report what the Content Security Policy blocked.
  * Without this a policy that breaks something for a real visitor is invisible:
  * the page just does not work, and nobody is told. Each report becomes one
  * structured log line, which the Worker's observability keeps.
  *
- *   POST /csp/reports   (application/reports+json or application/csp-report)
+ * POST /csp/reports (application/reports+json or application/csp-report).
  */
 
 import type { APIRoute } from 'astro';
@@ -21,9 +22,15 @@ const MAX_REPORT_BYTES = 16_384;
  * with an answer), 400 for a body that is not JSON, and 413 for one over 16 KiB.
  * Needs no sign-in: browsers send these anonymously, and the edge limits how
  * many one address may send.
+ * @param context - The Astro route context, whose request is the report batch.
+ * @returns The response to send back to the browser.
+ * @example
+ * ```ts
+ * const response = await POST(context);
+ * ```
  */
-export const POST: APIRoute = async ({ request }) => {
-  const text = await request.text();
+export const POST: APIRoute = async (context) => {
+  const text = await context.request.text();
   if (new TextEncoder().encode(text).length > MAX_REPORT_BYTES) {
     return new Response(null, { status: 413 });
   }

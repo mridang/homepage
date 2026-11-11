@@ -1,4 +1,5 @@
 /**
+ * @file The edge cache for anonymous pages: which requests may use it, its keys, and how a copy is stored and served.
  * @packageDocumentation
  *
  * The pages anyone can see (the kept pages in `site.ts`) are the same for
@@ -37,6 +38,13 @@ const LOCAL_HOSTS: ReadonlySet<string> = new Set([
  * request's URL and its `Host` header to the address in the app's route, but it
  * still reports the caller as `::1` or `127.0.0.1` in `cf-connecting-ip`, which
  * Cloudflare sets itself and a visitor cannot choose.
+ * @param request - The incoming request.
+ * @param url - The request's parsed URL.
+ * @returns True when the request comes from a developer's own machine.
+ * @example
+ * ```ts
+ * isLocal(new Request('http://localhost:8787/'), new URL('http://localhost:8787/')); // true
+ * ```
  */
 function isLocal(request: Request, url: URL): boolean {
   const host = (request.headers.get('host') ?? '')
@@ -60,6 +68,13 @@ const STORABLE_TYPES: readonly string[] = ['text/html', 'application/rss+xml'];
  * name given twice, a value over {@link MAX_VALUE_LENGTH} characters, or more
  * than {@link MAX_PARAMS} parameters. Refusing those keeps a caller from
  * making an unlimited number of copies.
+ * @param url - The request URL whose query is checked.
+ * @param allowed - The query parameter names a kept page may carry.
+ * @returns The sorted query, or null when it carries anything a kept page may not.
+ * @example
+ * ```ts
+ * allowedQuery(new URL('https://example.com/?b=2&a=1'), new Set(['a', 'b']))?.toString(); // 'a=1&b=2'
+ * ```
  */
 function allowedQuery(
   url: URL,
@@ -81,7 +96,7 @@ function allowedQuery(
     names.add(name);
   }
   return new URLSearchParams(
-    entries.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+    entries.toSorted(([a], [b]) => (a < b ? -1 : Number(a > b))),
   );
 }
 
@@ -90,6 +105,15 @@ function allowedQuery(
  * a plain GET of one of `pages` (the kept pages unless told otherwise), with no
  * query or only the parameters in `allowed`, from someone with no session, and
  * not on a developer's own machine.
+ * @param request - The incoming request.
+ * @param pages - The paths that may be kept. Defaults to the edge-cached pages.
+ * @param sessionCookie - The name of the session cookie. Its presence, valid or not, bypasses the cache.
+ * @param allowed - The query parameter names a kept page may carry.
+ * @returns True when the request may use the edge copy.
+ * @example
+ * ```ts
+ * isEdgeCacheable(new Request('https://example.com/')); // true
+ * ```
  */
 export function isEdgeCacheable(
   request: Request,
@@ -119,6 +143,14 @@ export function isEdgeCacheable(
  * The cache key for a page at one release: the path and the allowed
  * parameters, sorted by name, so the order a caller wrote them in makes no
  * difference. Only for a request {@link isEdgeCacheable} accepted.
+ * @param request - A request that {@link isEdgeCacheable} accepted.
+ * @param version - The deployed version id, so a new release never serves old pages.
+ * @param allowed - The query parameter names a kept page may carry.
+ * @returns A request whose URL serves as the cache key.
+ * @example
+ * ```ts
+ * const key = edgeCacheKey(new Request('https://example.com/'), 'v1');
+ * ```
  */
 export function edgeCacheKey(
   request: Request,
@@ -127,8 +159,9 @@ export function edgeCacheKey(
 ): Request {
   const url = new URL(request.url);
   const query = allowedQuery(url, allowed)?.toString() ?? '';
+  const search = query ? `?${query}` : '';
   return new Request(
-    `https://edge.${SITE_NAME}.invalid/${encodeURIComponent(version)}${url.pathname}${query ? `?${query}` : ''}`,
+    `https://edge.${SITE_NAME}.invalid/${encodeURIComponent(version)}${url.pathname}${search}`,
   );
 }
 
@@ -136,6 +169,12 @@ export function edgeCacheKey(
  * A copy of the response fit to keep, or null if it isn't (an error, a
  * redirect, something that isn't a page or a feed, or anything that sets a cookie). The
  * copy is marked public so the edge cache accepts it.
+ * @param response - The response the app produced.
+ * @returns A public copy of the response, or null when it must not be kept.
+ * @example
+ * ```ts
+ * const copy = storableCopy(new Response('<html></html>', { headers: { 'content-type': 'text/html' } }));
+ * ```
  */
 export function storableCopy(response: Response): Response | null {
   if (
@@ -163,6 +202,15 @@ export function storableCopy(response: Response): Response | null {
  * password everyone knows; so each hit gets a nonce of its own, swapped into the
  * scripts and into the policy header. A page whose policy carries no nonce is
  * returned as it is.
+ * @param cached - The stored copy of the page.
+ * @param nonce - The nonce of this request.
+ * @param csp - The policy of this request.
+ * @returns The page with this request's nonce, or the cached page when it has no nonce.
+ * @example
+ * ```ts
+ * const nonce = newNonce();
+ * const page = await withFreshNonce(cached, nonce, buildCsp(nonce));
+ * ```
  */
 export async function withFreshNonce(
   cached: Response,
@@ -173,7 +221,8 @@ export async function withFreshNonce(
   if (old === undefined) {
     return cached;
   }
-  return new Response((await cached.text()).replaceAll(old, nonce), {
+  const body = await cached.text();
+  return new Response(body.replaceAll(old, nonce), {
     status: cached.status,
     statusText: cached.statusText,
     headers: replacingHeaders(cached.headers, {
@@ -182,7 +231,15 @@ export async function withFreshNonce(
   });
 }
 
-/** Whether a value can be used as the edge cache: it answers `match` and `put`. */
+/**
+ * Whether a value can be used as the edge cache: it answers `match` and `put`.
+ * @param value - The value to test.
+ * @returns True when the value has both `match` and `put` methods.
+ * @example
+ * ```ts
+ * isCache({ match() {}, put() {} }); // true
+ * ```
+ */
 function isCache(value: unknown): value is Cache {
   return (
     typeof value === 'object' &&
@@ -192,7 +249,14 @@ function isCache(value: unknown): value is Cache {
   );
 }
 
-/** Cloudflare's per-colo cache; absent when running under plain Node. */
+/**
+ * Cloudflare's per-colo cache; absent when running under plain Node.
+ * @returns The default cache, or undefined when the Workers cache is not available.
+ * @example
+ * ```ts
+ * const cache = edgeCache(); // undefined under plain Node
+ * ```
+ */
 export function edgeCache(): Cache | undefined {
   const store: unknown = Reflect.get(globalThis, 'caches');
   const cache: unknown =

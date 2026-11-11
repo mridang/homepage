@@ -1,26 +1,27 @@
 {
   "name": "homepage",
   "version": "0.1.0",
+  "description": "My personal homepage, a single, fully server-rendered page running on Cloudflare Workers.",
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "astro dev",
-    "typecheck": "astro check",
-    "build": "astro check && astro build",
-    "preview": "astro preview",
-    "start": "astro dev",
     "astro": "astro",
+    "build": "astro check && astro build",
     "cf-typegen": "wrangler types && prettier --write worker-configuration.d.ts",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run --browser chrome",
     "deploy": "npm run build && wrangler deploy --config dist/server/wrangler.json",
-    "test": "jest --verbose --config=jest.config.mjs",
-    "test:watch": "npm run test -- --watch",
-    "test:debug": "jest --verbose --config=jest.config.mjs --detectOpenHandles",
+    "dev": "astro dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "npx eslint .",
     "lint:fix": "npx eslint . --fix",
-    "cypress:open": "cypress open",
-    "cypress:run": "cypress run --browser chrome"
+    "preview": "astro preview",
+    "start": "astro dev",
+    "test": "jest --verbose --config=jest.config.mjs",
+    "test:debug": "jest --verbose --config=jest.config.mjs --detectOpenHandles",
+    "test:watch": "npm run test -- --watch",
+    "typecheck": "astro check"
   },
   "engines": {
     "node": ">=24"
@@ -31,23 +32,25 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
-    "@eslint/compat": "^2.1.0",
+    "@eslint/compat": "^2.1.1",
     "@jest/globals": "^30.0.3",
-    "@mridang/eslint-defaults": "^1.7.0",
+    "@mridang/eslint-defaults": "^2.1.0",
     "@tailwindcss/vite": "^4.3.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.13.1",
     "cypress": "^16.2.0",
-    "eslint": "^9.39.4",
-    "eslint-plugin-astro": "^1.7.0",
+    "eslint": "^9.39.5",
     "jest": "^30.0.3",
     "jest-junit": "^17.0.0",
     "knip": "^6.17.1",
-    "prettier": "^3.8.3",
+    "prettier": "^3.9.10",
     "prettier-plugin-astro": "^0.14.1",
     "tailwindcss": "^4",
     "ts-jest": "^29.4.0",
-    "typescript": "^6.0.3",
+    "typescript": "~6.0.3",
     "wrangler": "^4.151.1"
+  },
+  "overrides": {
+    "@eslint/core": "1.2.1"
   }
 }

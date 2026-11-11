@@ -1,3 +1,6 @@
+/**
+ * @file Tests the route that receives CSP reports.
+ */
 import { describe, expect, it, jest } from '@jest/globals';
 
 import { POST } from '@/pages/csp/reports';
@@ -28,10 +31,12 @@ describe('POST /csp/reports', () => {
   });
 
   it('refuses a body that is not JSON with 400', async () => {
-    expect((await send('nope')).status).toBe(400);
+    const response = await send('nope');
+    expect(response.status).toBe(400);
   });
 
   it('refuses a body over 16 KiB with 413', async () => {
-    expect((await send('x'.repeat(20_000))).status).toBe(413);
+    const response = await send('x'.repeat(20_000));
+    expect(response.status).toBe(413);
   });
 });

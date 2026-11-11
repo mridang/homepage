@@ -1,4 +1,5 @@
 /**
+ * @file Application context attached to the invocation's root span, so Workers Issues can show who and what an error affected.
  * @packageDocumentation
  *
  * Application context for Workers Issues. Cloudflare shows the attributes set
@@ -38,26 +39,36 @@ const MAX_TEXT = 256;
 let loaded: ContextTracing | null | undefined;
 
 /**
- * Load `cloudflare:workers`. Only the loaded module is remembered, never the
+ * Loads `cloudflare:workers`. Only the loaded module is remembered, never the
  * promise: a promise started in one request must not be waited on in another,
  * which the Workers runtime may never settle. The module is lazy because it
  * exists only in the Workers runtime, and a failure is remembered. The ignore
  * comments keep the app's bundlers from trying to resolve it.
+ * @returns The tracing API, or null when the runtime module is not available.
+ * @example
+ * ```ts
+ * const tracing = await load();
+ * ```
  */
 function load(): Promise<ContextTracing | null> {
   return import(
     /* webpackIgnore: true */ /* turbopackIgnore: true */ 'cloudflare:workers'
-  ).then(
-    (workers) => (loaded = workers.tracing),
-    () => (loaded = null),
-  );
+  )
+    .then((workers) => (loaded = workers.tracing))
+    .catch(() => (loaded = null));
 }
 
 /**
- * Run `apply` on the invocation's root span, if there is one. Once the runtime
+ * Runs `apply` on the invocation's root span, if there is one. Once the runtime
  * module has loaded this happens at once, before the call returns, so that
  * context set in a handler that does not wait is still on the span when the
  * invocation ends. Never rejects.
+ * @param apply - The change to make to the active span.
+ * @returns A promise that settles once the change has been made or skipped.
+ * @example
+ * ```ts
+ * await withActiveSpan((span) => span.setAttribute('user.kind', 'signed-in'));
+ * ```
  */
 function withActiveSpan(apply: (span: ContextSpan) => void): Promise<void> {
   const run = (tracing: ContextTracing | null): void => {
@@ -74,18 +85,31 @@ function withActiveSpan(apply: (span: ContextSpan) => void): Promise<void> {
     run(loaded);
     return Promise.resolve();
   }
-  return load().then(run, () => undefined);
+  return load()
+    .then(run)
+    .catch(() => undefined);
 }
 
-/** The attributes worth keeping: defined, and a string, a finite number or a boolean. */
+/**
+ * The attributes worth keeping: defined, and a string, a finite number or a boolean.
+ * @param attributes - The attributes the caller wants to set.
+ * @returns The accepted attributes as key and value pairs, with text cut to a fixed length.
+ * @example
+ * ```ts
+ * accepted({ 'user.kind': 'signed-in', skipped: undefined }); // [['user.kind', 'signed-in']]
+ * ```
+ */
 function accepted(attributes: ContextAttributes): [string, ContextValue][] {
   const kept: [string, ContextValue][] = [];
   for (const [key, value] of Object.entries(attributes)) {
     if (typeof value === 'string') {
       kept.push([key, value.slice(0, MAX_TEXT)]);
-    } else if (typeof value === 'boolean') {
-      kept.push([key, value]);
-    } else if (typeof value === 'number' && Number.isFinite(value)) {
+      continue;
+    }
+    if (
+      typeof value === 'boolean' ||
+      (typeof value === 'number' && Number.isFinite(value))
+    ) {
       kept.push([key, value]);
     }
   }
@@ -93,11 +117,17 @@ function accepted(attributes: ContextAttributes): [string, ContextValue][] {
 }
 
 /**
- * Attach attributes to the current invocation so an error in it shows them.
+ * Attaches attributes to the current invocation so an error in it shows them.
  * Safe to call anywhere, any number of times (a later call for the same key
  * replaces the earlier value). The first call has to load the runtime module,
  * so where the caller is async it should wait for the result; the returned
  * promise never rejects.
+ * @param attributes - The attributes to set. Undefined values are dropped.
+ * @returns A promise that settles once the attributes have been set or skipped.
+ * @example
+ * ```ts
+ * await setErrorContext({ 'user.kind': 'signed-in', 'flow.id': 'abc' });
+ * ```
  */
 export function setErrorContext(attributes: ContextAttributes): Promise<void> {
   try {
@@ -116,9 +146,16 @@ export function setErrorContext(attributes: ContextAttributes): Promise<void> {
 }
 
 /**
- * Record an error on the current invocation's span so Issues groups it by
+ * Records an error on the current invocation's span so Issues groups it by
  * `name`. Only the two fixed words are sent, never text that came from a
  * request, a person or a provider.
+ * @param name - The error name that Issues groups by.
+ * @param message - A fixed message for the error.
+ * @returns A promise that settles once the error has been recorded or skipped.
+ * @example
+ * ```ts
+ * await recordErrorOnSpan('LoggedError', 'torrent.lookup');
+ * ```
  */
 export function recordErrorOnSpan(
   name: string,

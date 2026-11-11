@@ -1,4 +1,5 @@
 /**
+ * @file The Content Security Policy for every response, and the nonce that makes it work.
  * @packageDocumentation
  *
  * The Content Security Policy: the browser's own list of what a page may load
@@ -17,7 +18,14 @@ import { replacingHeaders } from './headers';
 import { CSP_REPORT_DIRECTIVES } from './reporting';
 import { EXTRA_DIRECTIVES, EXTRA_IMG_SOURCES } from './site';
 
-/** A fresh, unguessable nonce: 16 random bytes, base64. */
+/**
+ * Creates a fresh, unguessable nonce for one response.
+ * @returns Sixteen random bytes encoded as base64.
+ * @example
+ * ```ts
+ * const nonce = newNonce(); // a 24-character base64 string
+ * ```
+ */
 export function newNonce(): string {
   return bytesToBase64(crypto.getRandomValues(new Uint8Array(16)));
 }
@@ -29,14 +37,16 @@ export type CspSurface = 'site' | 'approval';
  * The policy for one response, carrying that response's nonce.
  *
  * No page may be framed by anyone, this site included (`frame-ancestors 'none'`).
- * The approval screen (`approval`) differs in one way: it names no
- * `form-action`: its form posts to our own consent endpoint, which answers with a
- * redirect to the *client's* address (a web page, a localhost port, an app's own
- * scheme). Browsers check a form's redirects against `form-action`, so listing
- * `'self'` there makes them refuse to send the person back to the app they just
- * approved. Where the form is allowed to post is not what protects the page
- * (the consent endpoint is protected by its own same-origin and CSRF checks),
- * so the directive is left out rather than made so wide it means nothing.
+ * The approval screen (`approval`) names no `form-action`, because its form redirects to the client's
+ * own address and browsers check those redirects against `form-action`. The consent endpoint is protected
+ * by its own same-origin and CSRF checks instead.
+ * @param nonce - The one-time nonce that scripts and styles must carry.
+ * @param surface - Which kind of page the policy is for. Defaults to `'site'`.
+ * @returns The value of the Content-Security-Policy header.
+ * @example
+ * ```ts
+ * const policy = buildCsp(newNonce(), 'approval');
+ * ```
  */
 export function buildCsp(nonce: string, surface: CspSurface = 'site'): string {
   const approval = surface === 'approval';
@@ -70,12 +80,26 @@ export function buildCsp(nonce: string, surface: CspSurface = 'site'): string {
  * Which policy a path gets. The approval screen may not be framed by anyone,
  * not even this site, and must let the browser follow the redirect back to the
  * assistant, so it has a policy of its own; every other page has the site's.
+ * @param pathname - The request path, without its query or fragment.
+ * @returns `'approval'` for the sign-in approval screen, otherwise `'site'`.
+ * @example
+ * ```ts
+ * cspSurfaceFor('/oauth/authorize'); // 'approval'
+ * ```
  */
 export function cspSurfaceFor(pathname: string): CspSurface {
   return pathname === '/oauth/authorize' ? 'approval' : 'site';
 }
 
-/** The nonce in a policy, if it carries one. */
+/**
+ * Reads the nonce out of a Content-Security-Policy value.
+ * @param csp - The policy text to read.
+ * @returns The nonce, or undefined when the policy carries none.
+ * @example
+ * ```ts
+ * nonceOf("script-src 'self' 'nonce-abc123'"); // 'abc123'
+ * ```
+ */
 export function nonceOf(csp: string): string | undefined {
   return /'nonce-([^']+)'/.exec(csp)?.[1];
 }
@@ -86,6 +110,15 @@ export function nonceOf(csp: string): string | undefined {
  * caller must be replaced, or Next.js could read the caller's nonce instead of
  * ours and render a page (that may then be cached) whose scripts our policy
  * refuses.
+ * @param incoming - The headers of the caller's request.
+ * @param csp - The policy to set on the forwarded request.
+ * @param nonce - The nonce to set on the forwarded request.
+ * @returns A copy of the incoming headers with the policy and nonce replaced.
+ * @example
+ * ```ts
+ * const nonce = newNonce();
+ * const headers = forwardedHeaders(request.headers, buildCsp(nonce), nonce);
+ * ```
  */
 export function forwardedHeaders(
   incoming: Headers,

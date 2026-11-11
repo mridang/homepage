@@ -1,4 +1,5 @@
 /**
+ * @file Structured JSON logging for Workers Logs, one line per call.
  * @packageDocumentation
  *
  * Structured logging for Workers Logs. Each log call emits a single
@@ -14,7 +15,6 @@ export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 /**
  * Required + extra fields for a structured log entry. `event` and
  * `level` are always set; any other fields you pass land verbatim.
- *
  * @public
  */
 export type LogFields = {
@@ -22,11 +22,30 @@ export type LogFields = {
   readonly event: string;
 } & Record<string, unknown>;
 
-/** The text of a thrown value, for a log field: an `Error`'s message, else the value as a string. @public */
+/**
+ * The text of a thrown value, for a log field.
+ * @param error - The thrown value.
+ * @returns The `Error`'s message, or the value converted to a string.
+ * @public
+ * @example
+ * ```ts
+ * errorMessage(new Error('boom')); // 'boom'
+ * ```
+ */
 export function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/**
+ * Writes one structured log line: the level and fields as JSON, with a timestamp.
+ * Warnings and errors go to the error stream; everything else to the log stream.
+ * @param level - The severity of the entry.
+ * @param fields - The event name and any other fields to log.
+ * @example
+ * ```ts
+ * emit('info', { event: 'torrent.lookup' });
+ * ```
+ */
 function emit(level: LogLevel, fields: LogFields): void {
   const line = JSON.stringify({
     level,
@@ -40,17 +59,41 @@ function emit(level: LogLevel, fields: LogFields): void {
   }
 }
 
-/** Emit an info-level structured log. @public */
+/**
+ * Emits an info-level structured log.
+ * @param fields - The event name and any other fields to log.
+ * @public
+ * @example
+ * ```ts
+ * logInfo({ event: 'torrent.lookup', status: 'ok' });
+ * ```
+ */
 export function logInfo(fields: LogFields): void {
   emit('info', fields);
 }
 
-/** Emit a warn-level structured log. @public */
+/**
+ * Emits a warn-level structured log.
+ * @param fields - The event name and any other fields to log.
+ * @public
+ * @example
+ * ```ts
+ * logWarn({ event: 'torrent.lookup', status: 'slow' });
+ * ```
+ */
 export function logWarn(fields: LogFields): void {
   emit('warn', fields);
 }
 
-/** Emit an error-level structured log. @public */
+/**
+ * Emits an error-level structured log, and records the event name as an error on the current span.
+ * @param fields - The event name and any other fields to log.
+ * @public
+ * @example
+ * ```ts
+ * logError({ event: 'torrent.lookup', error: 'timeout' });
+ * ```
+ */
 export function logError(fields: LogFields): void {
   emit('error', fields);
   // Issues groups errors by this name. Only the event name is sent: the

@@ -1,3 +1,6 @@
+/**
+ * @file Tests the structured logging helpers.
+ */
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
 import { installFakeTracing } from '../lib/core/observability/fake-tracing';
@@ -8,13 +11,30 @@ const { errorMessage, logError, logInfo, logWarn } =
 
 type ConsoleSpy = jest.SpiedFunction<typeof console.log>;
 
-/** Parses the first line the spy captured, asserting that one was emitted. */
+/**
+ * Parses the first line the spy captured, asserting that one was emitted.
+ * @param spy - The console spy that captured the output.
+ * @returns The first line that was logged.
+ * @example
+ * ```ts
+ * const line = firstLine(spy);
+ * ```
+ */
 function firstLine(spy: ConsoleSpy): string {
   const line = spy.mock.calls[0]?.[0];
   expect(typeof line).toBe('string');
   return String(line);
 }
 
+/**
+ * Parses the first logged line as a structured record.
+ * @param spy - The console spy that captured the output.
+ * @returns The first logged line, parsed as JSON.
+ * @example
+ * ```ts
+ * const record = firstRecord(spy);
+ * ```
+ */
 function firstRecord(spy: ConsoleSpy): Record<string, unknown> {
   return JSON.parse(firstLine(spy)) as Record<string, unknown>;
 }

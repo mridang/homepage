@@ -1,3 +1,6 @@
+/**
+ * @file End-to-end checks for the 404 page: its status, its policy and its links.
+ */
 describe('404 page', () => {
   it('answers 404 with a page the policy lets render', () => {
     cy.request({
@@ -15,6 +18,7 @@ describe('404 page', () => {
       expect(response.body).not.to.contain(
         'http-equiv="content-security-policy"',
       );
+      return response;
     });
   });
 
@@ -27,6 +31,7 @@ describe('404 page', () => {
       );
       cy.reload();
       cy.wrap(violations).should('have.length', 0);
+      return win;
     });
     cy.contains('a', 'Back to the home page').should('have.attr', 'href', '/');
   });

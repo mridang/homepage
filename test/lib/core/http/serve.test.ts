@@ -1,3 +1,6 @@
+/**
+ * @file Tests how the Worker answers a request, end to end.
+ */
 import { describe, expect, it } from '@jest/globals';
 
 import { installFakeTracing } from '../observability/fake-tracing';
@@ -13,7 +16,15 @@ const limits = genericLimits('app_session');
 const pages: ReadonlySet<string> = new Set(['/']);
 /** The query names these tests let a kept page carry. */
 const queryParams: ReadonlySet<string> = new Set(['alpha', 'beta']);
-/** A rate limit binding that refuses everyone, and counts how often it was asked. */
+
+/**
+ * Creates a rate limit binding that refuses everyone and counts how often it was asked.
+ * @returns A binding whose `limit` always refuses, with the number of calls so far.
+ * @example
+ * ```ts
+ * const limiter = refusing();
+ * ```
+ */
 function refusing(): {
   limit: () => Promise<{ success: boolean }>;
   asked: number;
@@ -28,7 +39,14 @@ function refusing(): {
   return binding;
 }
 
-/** A cache that keeps responses in memory, keyed by URL. */
+/**
+ * Creates an in-memory stand-in for the edge cache, keyed by URL.
+ * @returns A cache whose stored responses are exposed as `stored`.
+ * @example
+ * ```ts
+ * const cache = memoryCache();
+ * ```
+ */
 function memoryCache(): Cache & { readonly stored: Map<string, Response> } {
   const stored = new Map<string, Response>();
   return {
@@ -59,7 +77,15 @@ const ctx = () => {
   };
 };
 
-/** An app that answers every request with the given response factory and remembers what it was sent. */
+/**
+ * Creates an app that answers every request with the response from `make`, and remembers what it was sent.
+ * @param make - Builds the response for each request.
+ * @returns The app, with the requests it has seen in `seen`.
+ * @example
+ * ```ts
+ * const app = appAnswering(() => new Response('ok'));
+ * ```
+ */
 function appAnswering(make: (request: Request) => Response): ServeApp & {
   readonly seen: Request[];
 } {
@@ -447,7 +473,6 @@ describe('serve — the edge copy', () => {
   it('runs without an edge cache', async () => {
     const response = await serve(get('/'), {}, ctx().context, {
       app: appAnswering(() => page('a', 'n')),
-      cache: undefined,
       limits,
       pages,
     });

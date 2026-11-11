@@ -1,18 +1,19 @@
 /**
+ * @file How the Worker answers a request: rate limits, the edge copy, the app, and the response headers.
  * @packageDocumentation
  *
  * How the Worker answers a request, kept out of `src/worker.ts` (which cannot be
  * type-checked, because the app it forwards to is generated at build time) so
  * that it can be checked and tested:
  *
- *  1. a caller over a rate limit is refused at once (`edge-limits.ts`), before
- *     anything is looked up, so a page that is cached still counts;
- *  2. a kept page may come from the edge copy (`edge-cache.ts`), with a fresh
- *     Content Security Policy nonce of its own;
- *  3. everything else goes to the app, with the policy and its nonce on the
- *     request (that is where Next.js looks for it) and on the response;
- *  4. whatever goes back carries the site's security and cache headers, and a
- *     `Server-Timing` header with how long the Worker took and where.
+ * 1. a caller over a rate limit is refused at once (`edge-limits.ts`), before
+ * anything is looked up, so a page that is cached still counts;
+ * 2. a kept page may come from the edge copy (`edge-cache.ts`), with a fresh
+ * Content Security Policy nonce of its own;
+ * 3. everything else goes to the app, with the policy and its nonce on the
+ * request (that is where Next.js looks for it) and on the response;
+ * 4. whatever goes back carries the site's security and cache headers, and a
+ * `Server-Timing` header with how long the Worker took and where.
  *
  * This file is the same in every app. What an app counts against its rate
  * limits is in its own `extras.ts`, which has the same exports everywhere.
@@ -54,7 +55,7 @@ export interface ServeApp {
 export interface ServeDeps {
   readonly app: ServeApp;
   /** The edge cache, or undefined where there is none (plain Node). */
-  readonly cache?: Cache | undefined;
+  readonly cache?: Cache;
   /** What is rate limited, and how; the app's own unless a test supplies another. */
   readonly limits?: EdgeLimits;
   /** The pages the edge may keep a copy of; the app's own unless a test supplies others. */
@@ -63,7 +64,17 @@ export interface ServeDeps {
   readonly queryParams?: ReadonlySet<string>;
 }
 
-/** The response with one more header (responses from the app are read-only). */
+/**
+ * The response with one more header (responses from the app are read-only).
+ * @param response - The response to copy.
+ * @param name - The header name to set.
+ * @param value - The header value to set.
+ * @returns A new response with the header set.
+ * @example
+ * ```ts
+ * withHeader(new Response('ok'), 'X-Flow-ID', 'abc').headers.get('x-flow-id'); // 'abc'
+ * ```
+ */
 function withHeader(response: Response, name: string, value: string): Response {
   return new Response(response.body, {
     status: response.status,
@@ -80,12 +91,29 @@ interface Timing {
   appMs?: number;
 }
 
-/** Milliseconds as `Server-Timing` wants them: a number with at most one decimal. */
+/**
+ * Milliseconds as `Server-Timing` wants them: a number with at most one decimal.
+ * @param value - The duration in milliseconds.
+ * @returns The duration, rounded to one decimal and never negative.
+ * @example
+ * ```ts
+ * ms(12.345); // '12.3'
+ * ```
+ */
 function ms(value: number): string {
   return String(Math.round(Math.max(value, 0) * 10) / 10);
 }
 
-/** The `Server-Timing` value: the total, the edge cache outcome and, if asked, the app. */
+/**
+ * The `Server-Timing` value: the total, the edge cache outcome and, if asked, the app.
+ * @param totalMs - The total time the Worker took, in milliseconds.
+ * @param timing - The edge cache outcome and the time the app took, if it was asked.
+ * @returns The `Server-Timing` header value.
+ * @example
+ * ```ts
+ * serverTiming(12.34, { edge: 'hit' }); // 'total;dur=12.3, edge;desc="hit"'
+ * ```
+ */
 export function serverTiming(totalMs: number, timing: Timing): string {
   return [
     `total;dur=${ms(totalMs)}`,
@@ -98,9 +126,18 @@ export function serverTiming(totalMs: number, timing: Timing): string {
 const FLOW_ID = /^[A-Za-z0-9._:~-]{1,128}$/;
 
 /**
- * Answer one request. Every answer carries an `X-Flow-ID`: the caller's own
+ * Answers one request. Every answer carries an `X-Flow-ID`: the caller's own
  * when it sent a sane one, otherwise a fresh one. The app sees the same id on
  * the request, so a request can be followed through the logs.
+ * @param request - The incoming request.
+ * @param env - The Worker's bindings.
+ * @param ctx - The execution context of the invocation.
+ * @param deps - The app and the optional pieces a test may replace.
+ * @returns The response to send to the caller.
+ * @example
+ * ```ts
+ * const response = await serve(request, env, ctx, { app });
+ * ```
  */
 export async function serve(
   request: Request,
@@ -133,20 +170,33 @@ export async function serve(
   );
 }
 
-/** Answer one request, after it has been given its flow id. */
+/**
+ * Answers one request, after it has been given its flow id.
+ * @param request - The request, already tagged with its flow id.
+ * @param env - The Worker's bindings.
+ * @param ctx - The execution context of the invocation.
+ * @param deps - The app and the optional pieces a test may replace.
+ * @param timing - The record that the edge cache and the app update for `Server-Timing`.
+ * @returns The response to send to the caller.
+ * @example
+ * ```ts
+ * const response = await answer(tagged, env, ctx, { app }, { edge: 'skip' });
+ * ```
+ */
 async function answer(
   request: Request,
   env: ServeEnv,
   ctx: ExecutionContext,
-  {
+  deps: ServeDeps,
+  timing: Timing,
+): Promise<Response> {
+  const {
     app,
     cache = edgeCache(),
     limits = EDGE_LIMITS,
     pages = EDGE_CACHED_PAGES,
     queryParams = CACHED_QUERY_PARAMS,
-  }: ServeDeps,
-  timing: Timing,
-): Promise<Response> {
+  } = deps;
   const refused = await edgeLimitRefusal(request, env, limits);
   if (refused) {
     return applyResponseHeaders(request, refused);

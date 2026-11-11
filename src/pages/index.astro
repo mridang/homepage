@@ -1,5 +1,10 @@
 ---
-import Layout from '../layouts/Layout.astro';
+// The one-page homepage: the masthead, the introduction and the links.
+
+/**
+ * @file The home page: the masthead, the one-line introduction and the social links.
+ */
+import Layout from '../layouts/layout.astro';
 
 // Footer social links. Icon paths are the design's own marks, inlined so
 // they inherit currentColor for the hover state.
@@ -23,37 +28,49 @@ const socials = [
 ---
 
 <Layout>
-  <div class="screen">
-    <header class="masthead">
-      <div class="logo">MRIDA<span class="logo-italic">NG</span></div>
-      <div class="pronunciation" tabindex="0" aria-describedby="call-me-mika">
-        <span class="pos">n.</span>
-        <span class="ipa">/mriˈdɑːːŋ/</span>
-        <span class="tip" id="call-me-mika" role="tooltip"
-          >…or you can just call me “Mika”. 😅</span
-        >
+  <div className="screen">
+    <header className="masthead">
+      <div className="logo">
+        MRIDA<span className="logo-italic">NG</span>
       </div>
+      {
+        /* eslint-disable jsx-a11y/no-noninteractive-tabindex -- keyboard users focus the pronunciation to read its tooltip */
+      }
+      <div
+        className="pronunciation"
+        tabIndex="0"
+        aria-describedby="call-me-mika"
+      >
+        <span className="pos">n.</span>
+        <span className="ipa">/mriˈdɑːːŋ/</span>
+        <span className="tip" id="call-me-mika" role="tooltip">
+          …or you can just call me “Mika”. 😅
+        </span>
+      </div>
+      {
+        /* eslint-enable jsx-a11y/no-noninteractive-tabindex -- end of the disabled element */
+      }
     </header>
 
-    <main class="lede">
-      <h1 class="headline">
-        I build calm, considered software for the web<span class="accent"
-          >.</span
-        >
+    <main className="lede">
+      <h1 className="headline">
+        I build calm, considered software for the web
+        <span className="accent">.</span>
       </h1>
-      <p class="sub">
+      <p className="sub">
         An engineer who designs — clean systems, fast iterations, and interfaces
         that earn their place. Currently building something new.
       </p>
     </main>
 
-    <footer class="footer">
-      <div class="rule"></div>
-      <nav class="socials" aria-label="Social and contact links">
+    <footer className="footer">
+      <div className="rule"></div>
+      <nav className="socials" aria-label="Social and contact links">
         {
           socials.map((s) => (
             <a
-              class="social"
+              key={s.label}
+              className="social"
               href={s.href}
               aria-label={s.label}
               target="_blank"
@@ -71,9 +88,12 @@ const socials = [
              harvest. It starts `hidden` so no-JS clients don't see a dead,
              unfocusable icon; the script reveals it once it's a real link. */
         }
+        {
+          /* eslint-disable jsx-a11y/anchor-is-valid, github/a11y-role-supports-aria-props -- the script gives this hidden link its href, and no-JS clients never see it */
+        }
         <a
           id="contact-email"
-          class="social"
+          className="social"
           aria-label="Email"
           rel="nofollow"
           hidden
@@ -84,6 +104,9 @@ const socials = [
             ></path>
           </svg>
         </a>
+        {
+          /* eslint-enable jsx-a11y/anchor-is-valid, github/a11y-role-supports-aria-props -- end of the disabled element */
+        }
       </nav>
     </footer>
   </div>

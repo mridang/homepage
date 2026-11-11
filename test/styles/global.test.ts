@@ -1,10 +1,13 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+/**
+ * @file Tests the cursor rules in the global stylesheet.
+ */
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 
 import { describe, expect, it } from '@jest/globals';
 
-const css = readFileSync(
-  join(process.cwd(), 'src', 'styles', 'global.css'),
+const css = await readFile(
+  path.join(process.cwd(), 'src', 'styles', 'global.css'),
   'utf8',
 );
 

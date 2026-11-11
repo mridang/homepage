@@ -1,3 +1,9 @@
+/**
+ * @file Tests the rate-limit subject of a request's caller.
+ */
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+
 import { describe, expect, it } from '@jest/globals';
 
 import {
@@ -5,6 +11,26 @@ import {
   addressSubject,
   clientSubject,
 } from '@/lib/core/http';
+
+interface IpFixture {
+  loopbackV6: string;
+  loopbackV4: string;
+  loopbackMapped: string;
+  mappedV4: string;
+  forwardedFor: string;
+  documentationV6: string;
+  linkLocalZoned: string;
+  documentationV6Short: string;
+  callerV6: string;
+  subjectLoopback: string;
+  subjectDocumentation: string;
+  subjectLinkLocal: string;
+  counterKeyV6: string;
+}
+
+const ips = JSON.parse(
+  await readFile(path.join(process.cwd(), 'test/fixtures/ips.json'), 'utf8'),
+) as IpFixture;
 
 describe('addressSubject', () => {
   it('leaves an IPv4 address as it is', () => {
@@ -28,11 +54,11 @@ describe('addressSubject', () => {
   });
 
   it.each([
-    ['::1', '0:0:0:0::/64'],
-    ['2001:DB8::', '2001:db8:0:0::/64'],
-    ['fe80::1%eth0', 'fe80:0:0:0::/64'],
-    ['::ffff:192.0.2.1', '0:0:0:0::/64'],
-    ['2001:db8::1:2', '2001:db8:0:0::/64'],
+    [ips.loopbackV6, ips.subjectLoopback],
+    [ips.documentationV6, ips.subjectDocumentation],
+    [ips.linkLocalZoned, ips.subjectLinkLocal],
+    [ips.mappedV4, ips.subjectLoopback],
+    [ips.documentationV6Short, ips.subjectDocumentation],
   ])('reads %s', (address, subject) => {
     expect(addressSubject(address)).toBe(subject);
   });
@@ -57,7 +83,7 @@ describe('clientSubject', () => {
       clientSubject(
         from({
           'cf-connecting-ip': '203.0.113.7',
-          'x-forwarded-for': '1.1.1.1',
+          'x-forwarded-for': ips.forwardedFor,
         }),
       ),
     ).toBe('203.0.113.7');

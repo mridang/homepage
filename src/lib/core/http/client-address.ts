@@ -1,4 +1,5 @@
 /**
+ * @file Who a request comes from, reduced to the rate-limit subject it is counted under.
  * @packageDocumentation
  *
  * Who a request comes from, as a rate-limit subject. Behind Cloudflare the
@@ -12,12 +13,18 @@
 export const UNKNOWN_ADDRESS = 'unknown';
 
 /**
- * Expand an IPv6 address into its eight 16-bit groups, or undefined if it is not
- * one. Handles `::` compression and an embedded IPv4 tail; a zone id (`%eth0`)
- * is ignored.
+ * Expands an IPv6 address into its eight 16-bit groups.
+ *
+ * Handles `::` compression and an embedded IPv4 tail; a zone id (`%eth0`) is ignored.
+ * @param address - The address text to expand.
+ * @returns The eight groups as numbers, or undefined if the text is not an IPv6 address.
+ * @example
+ * ```ts
+ * ipv6Groups('2001:db8::1'); // [8193, 3512, 0, 0, 0, 0, 0, 1]
+ * ```
  */
 function ipv6Groups(address: string): readonly number[] | undefined {
-  const bare = address.split('%')[0]?.toLowerCase() ?? '';
+  const bare = address.split('%', 1)[0]?.toLowerCase() ?? '';
   if (!bare.includes(':')) {
     return undefined;
   }
@@ -70,9 +77,17 @@ function ipv6Groups(address: string): readonly number[] | undefined {
 }
 
 /**
- * The part of an address that identifies one network for rate-limiting: an
- * IPv4 address as it is, an IPv6 address as its /64 prefix (`2001:db8:1:2::/64`),
- * anything else unchanged.
+ * The part of an address that identifies one network for rate-limiting.
+ *
+ * An IPv4 address is kept as it is, an IPv6 address becomes its /64 prefix (`2001:db8:1:2::/64`),
+ * and anything else is returned unchanged.
+ * @param address - The address to reduce to its network.
+ * @returns The rate-limit subject for the address.
+ * @example
+ * ```ts
+ * addressSubject('2001:db8:1:2:3:4:5:6'); // '2001:db8:1:2::/64'
+ * addressSubject('192.0.2.7'); // '192.0.2.7'
+ * ```
  */
 export function addressSubject(address: string): string {
   const groups = ipv6Groups(address);
@@ -85,13 +100,20 @@ export function addressSubject(address: string): string {
 }
 
 /**
- * The rate-limit subject of a request's caller: Cloudflare's connecting
- * address, else the first hop of `X-Forwarded-For`, else {@link UNKNOWN_ADDRESS},
+ * The rate-limit subject of a request's caller.
+ *
+ * Uses Cloudflare's connecting address, else the first hop of `X-Forwarded-For`, else {@link UNKNOWN_ADDRESS},
  * with IPv6 reduced to its /64 (see {@link addressSubject}).
+ * @param headers - The request headers to read the caller's address from.
+ * @returns The rate-limit subject for the caller.
+ * @example
+ * ```ts
+ * clientSubject(new Headers({ 'cf-connecting-ip': '192.0.2.7' })); // '192.0.2.7'
+ * ```
  */
 export function clientSubject(headers: Headers): string {
   const cloudflare = headers.get('cf-connecting-ip')?.trim();
-  const forwarded = headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+  const forwarded = headers.get('x-forwarded-for')?.split(',', 1)[0]?.trim();
   const address = cloudflare || forwarded;
   return address ? addressSubject(address) : UNKNOWN_ADDRESS;
 }

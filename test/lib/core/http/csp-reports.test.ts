@@ -1,8 +1,20 @@
+/**
+ * @file Tests the summaries made from the CSP and Reporting API reports.
+ */
 import { describe, expect, it } from '@jest/globals';
 
 import { MAX_REPORTS_PER_REQUEST, summariseReports } from '@/lib/core/http';
 
-/** A Reporting API report. */
+/**
+ * Builds a report in the Reporting API's format.
+ * @param body - The report body.
+ * @param type - The report type. Defaults to `csp-violation`.
+ * @returns The report, with its type, its URL and its body.
+ * @example
+ * ```ts
+ * modern({ 'blocked-uri': 'inline' }); // { type: 'csp-violation', url: 'https://app.test/app', body: {...} }
+ * ```
+ */
 const modern = (body: Record<string, unknown>, type = 'csp-violation') => ({
   type,
   url: 'https://app.test/app',
@@ -109,7 +121,7 @@ describe('summariseReports', () => {
     expect(report?.sample).toHaveLength(80);
     expect(report?.directive).toHaveLength(60);
     expect(report?.blocked).not.toMatch(/[\r\n]/);
-    expect(JSON.stringify(report)).not.toContain('\\n');
+    expect(JSON.stringify(report)).not.toContain(String.raw`\n`);
   });
 
   it.each([

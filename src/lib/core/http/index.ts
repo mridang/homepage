@@ -1,4 +1,5 @@
 /**
+ * @file Re-exports the HTTP layer as one module.
  * @packageDocumentation
  *
  * The HTTP framework/platform layer: the Worker request pipeline (serve), the
@@ -6,13 +7,78 @@
  * security/cache response headers, the client address, and the per-app surface
  * these read.
  */
-export * from './serve';
-export * from './extras';
-export * from './edge-cache';
-export * from './edge-limits';
-export * from './reporting';
-export * from './csp';
-export * from './csp-reports';
-export * from './headers';
-export * from './client-address';
-export * from './site';
+export {
+  type ServeApp,
+  type ServeDeps,
+  type ServeEnv,
+  serve,
+  serverTiming,
+} from './serve';
+export { EDGE_LIMITS } from './extras';
+export {
+  edgeCache,
+  edgeCacheKey,
+  isEdgeCacheable,
+  storableCopy,
+  withFreshNonce,
+} from './edge-cache';
+export {
+  type ClassSpec,
+  type Counted,
+  counterKey,
+  type EdgeLimitEnv,
+  type EdgeLimits,
+  edgeLimitRefusal,
+  GENERIC_CLASSES,
+  type GenericClass,
+  genericClass,
+  genericLimits,
+  OVERALL_BINDING,
+  type RateLimitBinding,
+  type RefusalStyle,
+  tooManyRequests,
+} from './edge-limits';
+export {
+  CSP_REPORT_DIRECTIVES,
+  CSP_REPORT_GROUP,
+  CSP_REPORT_PATH,
+  REPORTING_ENDPOINTS,
+} from './reporting';
+export {
+  buildCsp,
+  type CspSurface,
+  cspSurfaceFor,
+  forwardedHeaders,
+  newNonce,
+  nonceOf,
+} from './csp';
+export {
+  MAX_REPORTS_PER_REQUEST,
+  type ReportSummary,
+  summariseReports,
+} from './csp-reports';
+export {
+  applyResponseHeaders,
+  openerPolicyFor,
+  replacingHeaders,
+  resourcePolicyFor,
+  SECURITY_HEADERS,
+} from './headers';
+export {
+  addressSubject,
+  clientSubject,
+  UNKNOWN_ADDRESS,
+} from './client-address';
+export {
+  CACHED_QUERY_PARAMS,
+  DISCOVERY_PATHS,
+  EDGE_CACHED_PAGES,
+  EDGE_TTL_SECONDS,
+  EXTRA_DIRECTIVES,
+  EXTRA_IMG_SOURCES,
+  OPEN_FILES,
+  PAGE_CACHE_RULES,
+  PUBLIC_PAGES,
+  RARELY_CHANGING,
+  STATIC_PREFIXES,
+} from './site';

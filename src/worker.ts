@@ -1,4 +1,5 @@
 /**
+ * @file The production Worker entry point, which routes every request through the shared pipeline.
  * @packageDocumentation
  *
  * Production Worker entry point.

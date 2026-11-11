@@ -1,4 +1,5 @@
 /**
+ * @file The origins of Cloudflare Web Analytics' beacon, which the Content Security Policy must allow.
  * @packageDocumentation
  *
  * Where Cloudflare Web Analytics' beacon loads from and reports to. Cloudflare

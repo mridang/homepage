@@ -1,3 +1,9 @@
+/**
+ * @file Tests which requests the edge cache may serve and keep.
+ */
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
@@ -20,6 +26,26 @@ const allowed: ReadonlySet<string> = new Set(['alpha', 'beta']);
 const get = (path: string, headers: Record<string, string> = {}) =>
   new Request(`https://app.test${path}`, { headers });
 
+interface IpFixture {
+  loopbackV6: string;
+  loopbackV4: string;
+  loopbackMapped: string;
+  mappedV4: string;
+  forwardedFor: string;
+  documentationV6: string;
+  linkLocalZoned: string;
+  documentationV6Short: string;
+  callerV6: string;
+  subjectLoopback: string;
+  subjectDocumentation: string;
+  subjectLinkLocal: string;
+  counterKeyV6: string;
+}
+
+const ips = JSON.parse(
+  await readFile(path.join(process.cwd(), 'test/fixtures/ips.json'), 'utf8'),
+) as IpFixture;
+
 describe('isEdgeCacheable', () => {
   it('keeps the public pages for signed-out visitors', () => {
     expect(isEdgeCacheable(get('/'), pages, 'app_session')).toBe(true);
@@ -38,11 +64,7 @@ describe('isEdgeCacheable', () => {
 
   it('keeps a page for everyone in an app that has no sign-in', () => {
     expect(
-      isEdgeCacheable(
-        get('/', { cookie: 'app_session=abc' }),
-        pages,
-        undefined,
-      ),
+      isEdgeCacheable(get('/', { cookie: 'app_session=abc' }), pages),
     ).toBe(true);
   });
 
@@ -144,7 +166,7 @@ describe('isEdgeCacheable - the query string', () => {
   });
 
   it('never keeps a page for a caller on a loopback address, whatever address it was reached on', () => {
-    for (const ip of ['::1', '127.0.0.1', '::ffff:127.0.0.1']) {
+    for (const ip of [ips.loopbackV6, ips.loopbackV4, ips.loopbackMapped]) {
       expect(
         isEdgeCacheable(
           get('/?alpha=1', { 'cf-connecting-ip': ip }),
@@ -221,9 +243,8 @@ describe('the app’s own settings', () => {
     expect(page).toBeDefined();
     expect(isEdgeCacheable(get(`${page}?zz-unknown=1`))).toBe(false);
     const [name] = [...CACHED_QUERY_PARAMS];
-    expect(isEdgeCacheable(get(`${page}${name ? `?${name}=1` : ''}`))).toBe(
-      true,
-    );
+    const suffix = name ? `?${name}=1` : '';
+    expect(isEdgeCacheable(get(`${page}${suffix}`))).toBe(true);
     if (name === undefined) {
       expect(isEdgeCacheable(get(`${page}?x=1`))).toBe(false);
     }
