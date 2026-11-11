@@ -1,7 +1,6 @@
 import { includeIgnoreFile } from '@eslint/compat';
 import { fileURLToPath } from 'node:url';
 import mridang from '@mridang/eslint-defaults';
-import astro from 'eslint-plugin-astro';
 
 export default [
   includeIgnoreFile(fileURLToPath(new URL('.gitignore', import.meta.url))),
@@ -20,7 +19,6 @@ export default [
     ],
   },
   ...mridang.configs.recommended,
-  ...astro.configs.recommended,
   {
     languageOptions: {
       parserOptions: {
