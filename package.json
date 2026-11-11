@@ -4,23 +4,23 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "astro dev",
-    "typecheck": "astro check",
-    "build": "astro check && astro build",
-    "preview": "astro preview",
-    "start": "astro dev",
     "astro": "astro",
+    "build": "astro check && astro build",
     "cf-typegen": "wrangler types && prettier --write worker-configuration.d.ts",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run --browser chrome",
     "deploy": "npm run build && wrangler deploy --config dist/server/wrangler.json",
-    "test": "jest --verbose --config=jest.config.mjs",
-    "test:watch": "npm run test -- --watch",
-    "test:debug": "jest --verbose --config=jest.config.mjs --detectOpenHandles",
+    "dev": "astro dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "npx eslint .",
     "lint:fix": "npx eslint . --fix",
-    "cypress:open": "cypress open",
-    "cypress:run": "cypress run --browser chrome"
+    "preview": "astro preview",
+    "start": "astro dev",
+    "test": "jest --verbose --config=jest.config.mjs",
+    "test:debug": "jest --verbose --config=jest.config.mjs --detectOpenHandles",
+    "test:watch": "npm run test -- --watch",
+    "typecheck": "astro check"
   },
   "engines": {
     "node": ">=24"
