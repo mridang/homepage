@@ -1,6 +1,3 @@
-/**
- * @file Jest configuration: ts-jest for the source and the tests, with coverage and JUnit output.
- */
 export default {
   preset: 'ts-jest/presets/default-esm',
   transform: {
@@ -8,7 +5,7 @@ export default {
       'ts-jest',
       {
         useESM: true,
-        tsconfig: 'tsconfig.jest.json',
+        tsconfig: '<rootDir>/tsconfig.jest.json',
       },
     ],
   },
@@ -28,7 +25,7 @@ export default {
     '/node_modules/',
     '/frontend/',
     '/dist/',
-    '/packages/',
+    '<rootDir>/packages/',
   ],
   resetModules: false,
   globalSetup: './test/setup.ts',
