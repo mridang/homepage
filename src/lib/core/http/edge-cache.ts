@@ -21,6 +21,12 @@ import {
   EDGE_TTL_SECONDS,
 } from './site';
 
+/** A port at the end of a host. */
+const PORT_SUFFIX = /:\d+$/;
+
+/** An IPv4 loopback address, plain or mapped into IPv6. */
+const LOOPBACK_ADDRESS = /^(::ffff:)?127\./;
+
 /** The most query parameters a kept page may carry. */
 const MAX_PARAMS = 8;
 /** The longest value a parameter of a kept page may have. */
@@ -49,13 +55,13 @@ const LOCAL_HOSTS: ReadonlySet<string> = new Set([
 function isLocal(request: Request, url: URL): boolean {
   const host = (request.headers.get('host') ?? '')
     .toLowerCase()
-    .replace(/:\d+$/, '');
+    .replace(PORT_SUFFIX, '');
   const caller = request.headers.get('cf-connecting-ip') ?? '';
   return (
     LOCAL_HOSTS.has(url.hostname) ||
     LOCAL_HOSTS.has(host) ||
     caller === '::1' ||
-    /^(::ffff:)?127\./.test(caller)
+    LOOPBACK_ADDRESS.test(caller)
   );
 }
 

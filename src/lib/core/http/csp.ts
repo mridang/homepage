@@ -18,6 +18,9 @@ import { replacingHeaders } from './headers';
 import { CSP_REPORT_DIRECTIVES } from './reporting';
 import { EXTRA_DIRECTIVES, EXTRA_IMG_SOURCES } from './site';
 
+/** The nonce source of a policy, capturing the nonce. */
+const NONCE_SOURCE = /'nonce-([^']+)'/;
+
 /**
  * Creates a fresh, unguessable nonce for one response.
  * @returns Sixteen random bytes encoded as base64.
@@ -26,6 +29,7 @@ import { EXTRA_DIRECTIVES, EXTRA_IMG_SOURCES } from './site';
  * const nonce = newNonce(); // a 24-character base64 string
  * ```
  */
+// eslint-disable-next-line unicorn/no-keyword-prefix -- exported name is part of the public API
 export function newNonce(): string {
   return bytesToBase64(crypto.getRandomValues(new Uint8Array(16)));
 }
@@ -101,7 +105,7 @@ export function cspSurfaceFor(pathname: string): CspSurface {
  * ```
  */
 export function nonceOf(csp: string): string | undefined {
-  return /'nonce-([^']+)'/.exec(csp)?.[1];
+  return NONCE_SOURCE.exec(csp)?.[1];
 }
 
 /**

@@ -19,7 +19,13 @@
  * limits is in its own `extras.ts`, which has the same exports everywhere.
  */
 
-import { buildCsp, cspSurfaceFor, forwardedHeaders, newNonce } from './csp';
+import {
+  buildCsp,
+  cspSurfaceFor,
+  forwardedHeaders,
+  // eslint-disable-next-line unicorn/no-keyword-prefix -- exported name is part of the public API
+  newNonce,
+} from './csp';
 import {
   edgeCache,
   edgeCacheKey,

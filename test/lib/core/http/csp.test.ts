@@ -7,17 +7,21 @@ import {
   buildCsp,
   cspSurfaceFor,
   forwardedHeaders,
+  // eslint-disable-next-line unicorn/no-keyword-prefix -- exported name is part of the public API
   newNonce,
   nonceOf,
   EXTRA_DIRECTIVES,
   EXTRA_IMG_SOURCES,
 } from '@/lib/core/http';
 
+/** Base64 text: the alphabet followed by optional padding. */
+const BASE64_TEXT = /^[A-Za-z0-9+/]+=*$/;
+
 describe('newNonce', () => {
   it('is base64 of 16 bytes, and different every time', () => {
     const a = newNonce();
     expect(Buffer.from(a, 'base64')).toHaveLength(16);
-    expect(a).toMatch(/^[A-Za-z0-9+/]+=*$/);
+    expect(a).toMatch(BASE64_TEXT);
     expect(newNonce()).not.toBe(a);
   });
 });

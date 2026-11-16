@@ -12,4 +12,4 @@
 import { genericLimits, type EdgeLimits } from './edge-limits';
 
 /** What this app counts, and how a request is sorted into it. */
-export const EDGE_LIMITS: EdgeLimits = genericLimits(undefined);
+export const EDGE_LIMITS: EdgeLimits = genericLimits();
