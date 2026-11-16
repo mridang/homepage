@@ -1,6 +1,9 @@
 /**
  * @file End-to-end checks for the 404 page: its status, its policy and its links.
  */
+
+/** The style-src directive with a hashed inline style. */
+const STYLE_SRC_HASH = /style-src 'self' 'sha256-/;
 describe('404 page', () => {
   it('answers 404 with a page the policy lets render', () => {
     cy.request({
@@ -9,7 +12,7 @@ describe('404 page', () => {
     }).then((response) => {
       expect(response.status).to.eq(404);
       expect(response.headers['content-security-policy']).to.match(
-        /style-src 'self' 'sha256-/,
+        STYLE_SRC_HASH,
       );
       expect(response.headers['content-security-policy']).to.contain(
         'report-uri /csp/reports',

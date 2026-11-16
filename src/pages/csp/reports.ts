@@ -40,9 +40,9 @@ export const POST: APIRoute = async (context) => {
   } catch {
     return new Response(null, { status: 400 });
   }
-  summariseReports(body).forEach((report) => {
+  for (const report of summariseReports(body)) {
     console.log('[csp-report]', JSON.stringify(report));
-  });
+  }
   return new Response(null, {
     status: 204,
     headers: { 'Cache-Control': 'no-store' },

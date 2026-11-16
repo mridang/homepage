@@ -9,6 +9,9 @@
  * on every request.
  */
 
+/** One to four hexadecimal digits, a single group of an IPv6 address. */
+const IPV6_GROUP = /^[0-9a-f]{1,4}$/;
+
 /** The subject used when no header names a caller (local development). */
 export const UNKNOWN_ADDRESS = 'unknown';
 
@@ -69,7 +72,7 @@ function ipv6Groups(address: string): readonly number[] | undefined {
     ...Array.from({ length: missing }, () => '0'),
     ...after,
   ].map((group) =>
-    /^[0-9a-f]{1,4}$/.test(group) ? Number.parseInt(group, 16) : Number.NaN,
+    IPV6_GROUP.test(group) ? Number.parseInt(group, 16) : Number.NaN,
   );
   return groups.length === 8 && groups.every((g) => !Number.isNaN(g))
     ? groups

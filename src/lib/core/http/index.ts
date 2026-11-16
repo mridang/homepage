@@ -49,6 +49,7 @@ export {
   type CspSurface,
   cspSurfaceFor,
   forwardedHeaders,
+  // eslint-disable-next-line unicorn/no-keyword-prefix -- exported name is part of the public API
   newNonce,
   nonceOf,
 } from './csp';

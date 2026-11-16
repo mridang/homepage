@@ -10,6 +10,19 @@ const { nonceOf, genericLimits, serve, serverTiming } =
   await import('@/lib/core/http');
 import type { ServeApp } from '@/lib/core/http';
 
+/** A flow id: a UUID. */
+const FLOW_ID = /^[0-9a-f-]{36}$/;
+
+/** The timing header when the edge skipped and the app answered. */
+const SKIPPED_TIMING =
+  /^total;dur=\d+(\.\d)?, edge;desc="skip", app;dur=\d+(\.\d)?$/;
+
+/** A timing header that starts with the total. */
+const TOTAL_TIMING = /^total;dur=/;
+
+/** A timing header that keeps the app's own entry first. */
+const APP_TIMING_FIRST = /^db;dur=3, total;/;
+
 /** What is rate limited in these tests: the classes every app has, with sessions in `app_session`. */
 const limits = genericLimits('app_session');
 /** The one page these tests let the edge keep a copy of. */
@@ -233,7 +246,7 @@ describe('serve — flow id', () => {
         { app, limits },
       );
       const id = response.headers.get('x-flow-id') ?? '';
-      expect(id).toMatch(/^[0-9a-f-]{36}$/);
+      expect(id).toMatch(FLOW_ID);
       expect(app.seen[0]?.headers.get('x-flow-id')).toBe(id);
     }
   });
@@ -486,9 +499,7 @@ describe('serve — Server-Timing', () => {
       app: appAnswering(() => Response.json({})),
       limits,
     });
-    expect(response.headers.get('server-timing')).toMatch(
-      /^total;dur=\d+(\.\d)?, edge;desc="skip", app;dur=\d+(\.\d)?$/,
-    );
+    expect(response.headers.get('server-timing')).toMatch(SKIPPED_TIMING);
   });
 
   it('reports a miss, then a hit without the app, for a kept page', async () => {
@@ -517,7 +528,7 @@ describe('serve — Server-Timing', () => {
       ctx().context,
       { app: appAnswering(html), limits },
     );
-    expect(response.headers.get('server-timing')).toMatch(/^total;dur=/);
+    expect(response.headers.get('server-timing')).toMatch(TOTAL_TIMING);
     expect(response.headers.get('server-timing')).not.toContain('app;dur=');
   });
 
@@ -528,7 +539,7 @@ describe('serve — Server-Timing', () => {
       ),
       limits,
     });
-    expect(response.headers.get('server-timing')).toMatch(/^db;dur=3, total;/);
+    expect(response.headers.get('server-timing')).toMatch(APP_TIMING_FIRST);
   });
 });
 

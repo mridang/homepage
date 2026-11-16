@@ -16,6 +16,9 @@
  * printable before it is logged.
  */
 
+/** The keyword sources a report may carry as they are. */
+const KEYWORD_SOURCE = /^(?:inline|eval|self|trusted-types-sink|wasm-eval)$/;
+
 /** One report, reduced to what is worth a log line. */
 export interface ReportSummary {
   /** `csp-violation`, `deprecation`, `permissions-policy-violation`, and others. */
@@ -73,12 +76,10 @@ function short(value: unknown, limit: number): string {
   }
   // Control characters (a line break in a log line could pass for another line) become spaces.
   const head = value.slice(0, limit * 2);
-  const printable = [...head]
-    .map((char) => {
-      const code = char.codePointAt(0) ?? 0;
-      return code < 32 || code === 127 ? ' ' : char;
-    })
-    .join('');
+  const printable = Array.from(head, (char) => {
+    const code = char.codePointAt(0) ?? 0;
+    return code < 32 || code === 127 ? ' ' : char;
+  }).join('');
   return printable.replaceAll(/\s+/g, ' ').trim().slice(0, limit);
 }
 
@@ -130,10 +131,7 @@ function pathOf(address: string): string {
  * ```
  */
 function blockedOf(address: string): string {
-  if (
-    address === '' ||
-    /^(?:inline|eval|self|trusted-types-sink|wasm-eval)$/.test(address)
-  ) {
+  if (address === '' || KEYWORD_SOURCE.test(address)) {
     return address;
   }
   try {
