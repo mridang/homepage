@@ -10,6 +10,7 @@
 // cf-typegen` after changing wrangler.jsonc).
 declare namespace App {
   interface Locals {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- a top-level import would turn this ambient declaration file into a module and stop `App.Locals` from merging globally
     runtime: import('@astrojs/cloudflare').Runtime<Env>['runtime'];
   }
 }

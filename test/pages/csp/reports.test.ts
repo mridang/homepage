@@ -5,7 +5,7 @@ import { describe, expect, it, jest } from '@jest/globals';
 
 import { POST } from '@/pages/csp/reports';
 
-const send = (body: string) =>
+const send = async (body: string) =>
   POST({
     request: new Request('https://mrida.ng/csp/reports', {
       method: 'POST',

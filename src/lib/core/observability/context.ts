@@ -50,7 +50,7 @@ let loaded: ContextTracing | null | undefined;
  * const tracing = await load();
  * ```
  */
-function load(): Promise<ContextTracing | null> {
+async function load(): Promise<ContextTracing | null> {
   return import(
     /* webpackIgnore: true */ /* turbopackIgnore: true */ 'cloudflare:workers'
   )
@@ -70,7 +70,9 @@ function load(): Promise<ContextTracing | null> {
  * await withActiveSpan((span) => span.setAttribute('user.kind', 'signed-in'));
  * ```
  */
-function withActiveSpan(apply: (span: ContextSpan) => void): Promise<void> {
+async function withActiveSpan(
+  apply: (span: ContextSpan) => void,
+): Promise<void> {
   const run = (tracing: ContextTracing | null): void => {
     try {
       const span = tracing?.getActiveSpan();
@@ -81,13 +83,13 @@ function withActiveSpan(apply: (span: ContextSpan) => void): Promise<void> {
       // Context is a convenience: it must never fail a request.
     }
   };
-  if (loaded !== undefined) {
+  if (loaded === undefined) {
+    await load()
+      .then(run)
+      .catch(() => undefined);
+  } else {
     run(loaded);
-    return Promise.resolve();
   }
-  return load()
-    .then(run)
-    .catch(() => undefined);
 }
 
 /**
@@ -129,19 +131,21 @@ function accepted(attributes: ContextAttributes): [string, ContextValue][] {
  * await setErrorContext({ 'user.kind': 'signed-in', 'flow.id': 'abc' });
  * ```
  */
-export function setErrorContext(attributes: ContextAttributes): Promise<void> {
+export async function setErrorContext(
+  attributes: ContextAttributes,
+): Promise<void> {
   try {
     const kept = accepted(attributes);
     if (kept.length === 0) {
-      return Promise.resolve();
+      return;
     }
-    return withActiveSpan((span) => {
+    await withActiveSpan((span) => {
       for (const [key, value] of kept) {
         span.setAttribute(key, value);
       }
     });
   } catch {
-    return Promise.resolve();
+    return;
   }
 }
 
@@ -157,7 +161,7 @@ export function setErrorContext(attributes: ContextAttributes): Promise<void> {
  * await recordErrorOnSpan('LoggedError', 'torrent.lookup');
  * ```
  */
-export function recordErrorOnSpan(
+export async function recordErrorOnSpan(
   name: string,
   message: string,
 ): Promise<void> {

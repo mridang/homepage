@@ -21,7 +21,7 @@ type ConsoleSpy = jest.SpiedFunction<typeof console.log>;
  * ```
  */
 function firstLine(spy: ConsoleSpy): string {
-  const line = spy.mock.calls[0]?.[0];
+  const line: unknown = spy.mock.calls[0]?.[0];
   expect(typeof line).toBe('string');
   return String(line);
 }
