@@ -293,7 +293,8 @@ describe('storableCopy', () => {
 });
 
 describe('edgeCache', () => {
-  const original = Reflect.get(globalThis, 'caches');
+  const original: unknown =
+    'caches' in globalThis ? globalThis.caches : undefined;
   afterEach(() => {
     Reflect.set(globalThis, 'caches', original);
   });

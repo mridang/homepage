@@ -23,8 +23,8 @@ export type ContextAttributes = Readonly<
 
 /** The part of a Workers span this file uses. */
 interface ContextSpan {
-  setAttribute(key: string, value: ContextValue): unknown;
-  recordException(exception: { name: string; message: string }): unknown;
+  setAttribute(key: string, value: ContextValue): void;
+  recordException(exception: { name: string; message: string }): void;
 }
 
 /** The part of `tracing` from `cloudflare:workers` this file uses. */
@@ -35,8 +35,8 @@ interface ContextTracing {
 /** Longest text kept in one attribute; the rest is cut off. */
 const MAX_TEXT = 256;
 
-/** The tracing API once loaded; `null` where there is none. */
-let loaded: ContextTracing | null | undefined;
+/** The tracing API once loaded under the key `tracing`; `null` where there is none, and no entry before the first load. */
+const loaded = new Map<'tracing', ContextTracing | null>();
 
 /**
  * Loads `cloudflare:workers`. Only the loaded module is remembered, never the
@@ -54,8 +54,16 @@ async function load(): Promise<ContextTracing | null> {
   return import(
     /* webpackIgnore: true */ /* turbopackIgnore: true */ 'cloudflare:workers'
   )
-    .then((workers) => (loaded = workers.tracing))
-    .catch(() => (loaded = null));
+    .then((workers) => {
+      // eslint-disable-next-line functional/immutable-data -- the module-level memo of the loaded runtime module
+      loaded.set('tracing', workers.tracing);
+      return workers.tracing;
+    })
+    .catch(() => {
+      // eslint-disable-next-line functional/immutable-data -- the module-level memo of the loaded runtime module
+      loaded.set('tracing', null);
+      return null;
+    });
 }
 
 /**
@@ -83,12 +91,12 @@ async function withActiveSpan(
       // Context is a convenience: it must never fail a request.
     }
   };
-  if (loaded === undefined) {
+  if (loaded.has('tracing')) {
+    run(loaded.get('tracing') ?? null);
+  } else {
     await load()
       .then(run)
       .catch(() => undefined);
-  } else {
-    run(loaded);
   }
 }
 
@@ -102,20 +110,20 @@ async function withActiveSpan(
  * ```
  */
 function accepted(attributes: ContextAttributes): [string, ContextValue][] {
-  const kept: [string, ContextValue][] = [];
-  for (const [key, value] of Object.entries(attributes)) {
-    if (typeof value === 'string') {
-      kept.push([key, value.slice(0, MAX_TEXT)]);
-      continue;
-    }
-    if (
-      typeof value === 'boolean' ||
-      (typeof value === 'number' && Number.isFinite(value))
-    ) {
-      kept.push([key, value]);
-    }
-  }
-  return kept;
+  return Object.entries(attributes).flatMap(
+    ([key, value]): [string, ContextValue][] => {
+      if (typeof value === 'string') {
+        return [[key, value.slice(0, MAX_TEXT)]];
+      }
+      if (
+        typeof value === 'boolean' ||
+        (typeof value === 'number' && Number.isFinite(value))
+      ) {
+        return [[key, value]];
+      }
+      return [];
+    },
+  );
 }
 
 /**
@@ -140,12 +148,13 @@ export async function setErrorContext(
       return;
     }
     await withActiveSpan((span) => {
+      // eslint-disable-next-line functional/no-loop-statements -- sets attributes on the span, a side effect that has no value to build
       for (const [key, value] of kept) {
         span.setAttribute(key, value);
       }
     });
   } catch {
-    return;
+    // Context is a convenience: it must never fail a request.
   }
 }
 

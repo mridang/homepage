@@ -8,8 +8,8 @@
  * POST /csp/reports (application/reports+json or application/csp-report).
  */
 
-import type { APIRoute } from 'astro';
 import { summariseReports } from '../../lib/core/http';
+import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
@@ -34,13 +34,18 @@ export const POST: APIRoute = async (context) => {
   if (new TextEncoder().encode(text).length > MAX_REPORT_BYTES) {
     return new Response(null, { status: 413 });
   }
-  let body: unknown;
-  try {
-    body = JSON.parse(text);
-  } catch {
+  const body = ((): { value: unknown } | null => {
+    try {
+      return { value: JSON.parse(text) as unknown };
+    } catch {
+      return null;
+    }
+  })();
+  if (body === null) {
     return new Response(null, { status: 400 });
   }
-  for (const report of summariseReports(body)) {
+  // eslint-disable-next-line functional/no-loop-statements -- only logs each report
+  for (const report of summariseReports(body.value)) {
     console.log('[csp-report]', JSON.stringify(report));
   }
   return new Response(null, {

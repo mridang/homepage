@@ -46,6 +46,7 @@ export function installFakeTracing(): FakeTracing {
       fake.exceptions.push(exception);
     },
   };
+  // eslint-disable-next-line tslop/no-module-mocking -- `cloudflare:workers` exists only in the Workers runtime, so a virtual module is the only way to stand in for it
   jest.unstable_mockModule(
     'cloudflare:workers',
     () => ({

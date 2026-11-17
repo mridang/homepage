@@ -3,7 +3,7 @@
  */
 
 /** The style-src directive with a hashed inline style. */
-const STYLE_SRC_HASH = /style-src 'self' 'sha256-/;
+const STYLE_SRC_HASH = /style-src 'self' 'sha256-/u;
 describe('404 page', () => {
   it('answers 404 with a page the policy lets render', () => {
     cy.request({

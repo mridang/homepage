@@ -36,7 +36,7 @@ export const EDGE_TTL_SECONDS = 300;
  * marked noindex.
  */
 export const OPEN_FILES =
-  /^\/(og\.png|favicon\.svg|favicon\.ico|favicon-\d+x\d+\.png|apple-touch-icon\.png|mask-icon\.svg|robots\.txt|sitemap\.xml|\.well-known\/.*)$/;
+  /^\/(og\.png|favicon\.svg|favicon\.ico|favicon-\d+x\d+\.png|apple-touch-icon\.png|mask-icon\.svg|robots\.txt|sitemap\.xml|\.well-known\/.*)$/u;
 
 /** The small files that rarely change, and for which a stale copy is harmless. */
 export const RARELY_CHANGING: ReadonlySet<string> = new Set([
@@ -71,6 +71,6 @@ export const DISCOVERY_PATHS: ReadonlySet<string> = new Set([
  * A cache rule for pages that differ from the default `private, no-cache`,
  * keyed by path. The home page is public and the same for everyone.
  */
-export const PAGE_CACHE_RULES: Readonly<Record<string, string>> = {
+export const PAGE_CACHE_RULES = {
   '/': 'public, max-age=300',
 };

@@ -19,7 +19,7 @@ import { CSP_REPORT_DIRECTIVES } from './reporting';
 import { EXTRA_DIRECTIVES, EXTRA_IMG_SOURCES } from './site';
 
 /** The nonce source of a policy, capturing the nonce. */
-const NONCE_SOURCE = /'nonce-([^']+)'/;
+const NONCE_SOURCE = /'nonce-([^']+)'/u;
 
 /**
  * Creates a fresh, unguessable nonce for one response.
