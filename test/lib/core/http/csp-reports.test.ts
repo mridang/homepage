@@ -6,7 +6,7 @@ import { describe, expect, it } from '@jest/globals';
 import { MAX_REPORTS_PER_REQUEST, summariseReports } from '@/lib/core/http';
 
 /** A carriage return or a line feed. */
-const LINE_BREAK = /[\r\n]/;
+const LINE_BREAK = /[\r\n]/u;
 
 /**
  * Builds a report in the Reporting API's format.

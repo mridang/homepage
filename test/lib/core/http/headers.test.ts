@@ -1,9 +1,9 @@
 /**
  * @file Tests the response headers applied to every page.
  */
-import { describe, expect, it } from '@jest/globals';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { describe, expect, it } from '@jest/globals';
 
 import {
   SECURITY_HEADERS,

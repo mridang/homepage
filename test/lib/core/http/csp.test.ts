@@ -15,7 +15,7 @@ import {
 } from '@/lib/core/http';
 
 /** Base64 text: the alphabet followed by optional padding. */
-const BASE64_TEXT = /^[A-Za-z0-9+/]+=*$/;
+const BASE64_TEXT = /^[A-Za-z0-9+/]+=*$/u;
 
 describe('newNonce', () => {
   it('is base64 of 16 bytes, and different every time', () => {
@@ -59,7 +59,7 @@ describe('buildCsp', () => {
     'manifest-src',
     'worker-src',
   ])('names %s itself, since nothing falls back to the default', (name) => {
-    expect(directive(name)).toMatch(new RegExp(`^${name} 'self'`));
+    expect(directive(name)).toMatch(new RegExp(`^${name} 'self'`, 'u'));
   });
 
   it('allows pictures from this site and the places site.ts names, nothing else', () => {

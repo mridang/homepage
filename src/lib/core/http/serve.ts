@@ -19,6 +19,7 @@
  * limits is in its own `extras.ts`, which has the same exports everywhere.
  */
 
+import { setErrorContext } from '../observability/context';
 import {
   buildCsp,
   cspSurfaceFor,
@@ -33,15 +34,11 @@ import {
   storableCopy,
   withFreshNonce,
 } from './edge-cache';
-import {
-  edgeLimitRefusal,
-  type EdgeLimitEnv,
-  type EdgeLimits,
-} from './edge-limits';
-import { setErrorContext } from '../observability/context';
+import { edgeLimitRefusal } from './edge-limits';
 import { EDGE_LIMITS } from './extras';
 import { applyResponseHeaders, replacingHeaders } from './headers';
 import { CACHED_QUERY_PARAMS, EDGE_CACHED_PAGES } from './site';
+import type { EdgeLimitEnv, EdgeLimits } from './edge-limits';
 
 /** What the Worker is given besides the request. */
 export type ServeEnv = EdgeLimitEnv & {
@@ -129,7 +126,7 @@ export function serverTiming(totalMs: number, timing: Timing): string {
 }
 
 /** Longest `X-Flow-ID` accepted from a caller, and the characters it may use. */
-const FLOW_ID = /^[A-Za-z0-9._:~-]{1,128}$/;
+const FLOW_ID = /^[A-Za-z0-9._:~-]{1,128}$/u;
 
 /**
  * Answers one request. Every answer carries an `X-Flow-ID`: the caller's own
@@ -160,8 +157,7 @@ export async function serve(
     headers: replacingHeaders(request.headers, { 'X-Flow-ID': flowId }),
   });
   const started = performance.now();
-  const timing: Timing = { edge: 'skip' };
-  const response = await answer(tagged, env, ctx, deps, timing);
+  const { response, timing } = await answer(tagged, env, ctx, deps);
   if (response.status === 101 || response.webSocket) {
     return response;
   }
@@ -182,11 +178,10 @@ export async function serve(
  * @param env - The Worker's bindings.
  * @param ctx - The execution context of the invocation.
  * @param deps - The app and the optional pieces a test may replace.
- * @param timing - The record that the edge cache and the app update for `Server-Timing`.
- * @returns The response to send to the caller.
+ * @returns The response to send to the caller, and what the edge cache and the app did for `Server-Timing`.
  * @example
  * ```ts
- * const response = await answer(tagged, env, ctx, { app }, { edge: 'skip' });
+ * const { response, timing } = await answer(tagged, env, ctx, { app });
  * ```
  */
 async function answer(
@@ -194,8 +189,7 @@ async function answer(
   env: ServeEnv,
   ctx: ExecutionContext,
   deps: ServeDeps,
-  timing: Timing,
-): Promise<Response> {
+): Promise<{ response: Response; timing: Timing }> {
   const {
     app,
     cache = edgeCache(),
@@ -205,7 +199,10 @@ async function answer(
   } = deps;
   const refused = await edgeLimitRefusal(request, env, limits);
   if (refused) {
-    return applyResponseHeaders(request, refused);
+    return {
+      response: applyResponseHeaders(request, refused),
+      timing: { edge: 'skip' },
+    };
   }
   // Each page gets its own Content Security Policy, with a one-time number the
   // app puts on its scripts. The approval screen may not be framed by anyone,
@@ -219,12 +216,14 @@ async function answer(
       : undefined;
   if (cache && key) {
     const hit = await cache.match(key);
-    timing.edge = hit ? 'hit' : 'miss';
     if (hit) {
-      return applyResponseHeaders(
-        request,
-        await withFreshNonce(hit, nonce, csp),
-      );
+      return {
+        response: applyResponseHeaders(
+          request,
+          await withFreshNonce(hit, nonce, csp),
+        ),
+        timing: { edge: 'hit' },
+      };
     }
   }
   const forwarded = new Request(request, {
@@ -232,7 +231,7 @@ async function answer(
   });
   const appStarted = performance.now();
   const fetched = await app.fetch(forwarded, env as never, ctx);
-  timing.appMs = performance.now() - appStarted;
+  const appMs = performance.now() - appStarted;
   const isHtml = (fetched.headers.get('content-type') ?? '').startsWith(
     'text/html',
   );
@@ -246,5 +245,8 @@ async function answer(
       ctx.waitUntil(cache.put(key, copy));
     }
   }
-  return applyResponseHeaders(request, response);
+  return {
+    response: applyResponseHeaders(request, response),
+    timing: { edge: cache && key ? 'miss' : 'skip', appMs },
+  };
 }

@@ -11,17 +11,17 @@ const { nonceOf, genericLimits, serve, serverTiming } =
 import type { ServeApp } from '@/lib/core/http';
 
 /** A flow id: a UUID. */
-const FLOW_ID = /^[0-9a-f-]{36}$/;
+const FLOW_ID = /^[0-9a-f-]{36}$/u;
 
 /** The timing header when the edge skipped and the app answered. */
 const SKIPPED_TIMING =
-  /^total;dur=\d+(\.\d)?, edge;desc="skip", app;dur=\d+(\.\d)?$/;
+  /^total;dur=\d+(\.\d)?, edge;desc="skip", app;dur=\d+(\.\d)?$/u;
 
 /** A timing header that starts with the total. */
-const TOTAL_TIMING = /^total;dur=/;
+const TOTAL_TIMING = /^total;dur=/u;
 
 /** A timing header that keeps the app's own entry first. */
-const APP_TIMING_FIRST = /^db;dur=3, total;/;
+const APP_TIMING_FIRST = /^db;dur=3, total;/u;
 
 /** What is rate limited in these tests: the classes every app has, with sessions in `app_session`. */
 const limits = genericLimits('app_session');
@@ -38,10 +38,7 @@ const queryParams: ReadonlySet<string> = new Set(['alpha', 'beta']);
  * const limiter = refusing();
  * ```
  */
-function refusing(): {
-  limit: () => Promise<{ success: boolean }>;
-  asked: number;
-} {
+function refusing() {
   const binding = {
     asked: 0,
     limit: async () => {
@@ -193,10 +190,9 @@ describe('serve', () => {
       app: json,
       limits,
     });
-    expect(b.headers.get('content-security-policy')).toContain(
-      'frame-ancestors',
-    );
-    expect(b.headers.get('content-security-policy')).not.toContain('nonce-');
+    const policy = b.headers.get('content-security-policy');
+    expect(policy).toContain('frame-ancestors');
+    expect(policy).not.toContain('nonce-');
   });
 
   it('gives the approval screen the policy that forbids framing and omits form-action', async () => {
@@ -514,10 +510,12 @@ describe('serve — Server-Timing', () => {
     const miss = await serve(get('/'), {}, context, deps);
     await Promise.all(pending);
     const hit = await serve(get('/'), {}, context, deps);
-    expect(miss.headers.get('server-timing')).toContain('edge;desc="miss"');
-    expect(miss.headers.get('server-timing')).toContain('app;dur=');
-    expect(hit.headers.get('server-timing')).toContain('edge;desc="hit"');
-    expect(hit.headers.get('server-timing')).not.toContain('app;dur=');
+    const missTiming = miss.headers.get('server-timing');
+    const hitTiming = hit.headers.get('server-timing');
+    expect(missTiming).toContain('edge;desc="miss"');
+    expect(missTiming).toContain('app;dur=');
+    expect(hitTiming).toContain('edge;desc="hit"');
+    expect(hitTiming).not.toContain('app;dur=');
   });
 
   it('is on a refusal, which never reaches the app', async () => {
@@ -528,8 +526,9 @@ describe('serve — Server-Timing', () => {
       ctx().context,
       { app: appAnswering(html), limits },
     );
-    expect(response.headers.get('server-timing')).toMatch(TOTAL_TIMING);
-    expect(response.headers.get('server-timing')).not.toContain('app;dur=');
+    const timing = response.headers.get('server-timing');
+    expect(timing).toMatch(TOTAL_TIMING);
+    expect(timing).not.toContain('app;dur=');
   });
 
   it('keeps timing the app already sent', async () => {

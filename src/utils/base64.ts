@@ -37,6 +37,9 @@ export function base64ToBytes(base64: string): Uint8Array {
   return Uint8Array.from(atob(base64), (char) => char.codePointAt(0) ?? 0);
 }
 
+/** The padding that base64 puts at the end: one or two `=`. */
+const TRAILING_PADDING = /={1,2}$/u;
+
 /**
  * Encodes raw bytes as URL-safe base64 (`-` and `_`, no padding).
  * @param bytes - The bytes to encode.
@@ -50,11 +53,7 @@ export function bytesToBase64Url(bytes: Uint8Array): string {
   const encoded = bytesToBase64(bytes)
     .replaceAll('+', '-')
     .replaceAll('/', '_');
-  let end = encoded.length;
-  while (end > 0 && encoded.charAt(end - 1) === '=') {
-    end--;
-  }
-  return encoded.slice(0, end);
+  return encoded.replace(TRAILING_PADDING, '');
 }
 
 /**

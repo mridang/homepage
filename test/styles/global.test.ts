@@ -7,10 +7,10 @@ import path from 'node:path';
 import { describe, expect, it } from '@jest/globals';
 
 /** The rule that sets the pointer, capturing its selector list. */
-const POINTER_RULE = /(button:not\(:disabled\),[^{]*)\{\s*cursor: pointer;/;
+const POINTER_RULE = /(button:not\(:disabled\),[^{]*)\{\s*cursor: pointer;/u;
 
 /** A bare `button` selector, which would also match disabled buttons. */
-const BARE_BUTTON = /(^|,)\s*button,/;
+const BARE_BUTTON = /(^|,)\s*button,/u;
 
 const css = await readFile(
   path.join(process.cwd(), 'src', 'styles', 'global.css'),
@@ -26,8 +26,9 @@ describe('global.css', () => {
         'button:not(:disabled)',
         'summary',
         'select:not(:disabled)',
-      ])
+      ]) {
         expect(rule).toContain(selector);
+      }
       expect(rule).toContain("[role='button']");
     });
 

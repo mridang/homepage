@@ -17,7 +17,7 @@
  */
 
 /** The keyword sources a report may carry as they are. */
-const KEYWORD_SOURCE = /^(?:inline|eval|self|trusted-types-sink|wasm-eval)$/;
+const KEYWORD_SOURCE = /^(?:inline|eval|self|trusted-types-sink|wasm-eval)$/u;
 
 /** One report, reduced to what is worth a log line. */
 export interface ReportSummary {
@@ -42,7 +42,7 @@ export const MAX_REPORTS_PER_REQUEST = 20;
 
 /** The schemes extensions use for their own addresses. */
 const EXTENSION_SCHEME =
-  /^(?:chrome|moz|safari|safari-web|ms-browser|edge)-extension:/i;
+  /^(?:chrome|moz|safari|safari-web|ms-browser|edge)-extension:/iu;
 
 /**
  * Whether a value is a plain JSON object, neither an array nor null.
@@ -80,7 +80,7 @@ function short(value: unknown, limit: number): string {
     const code = char.codePointAt(0) ?? 0;
     return code < 32 || code === 127 ? ' ' : char;
   }).join('');
-  return printable.replaceAll(/\s+/g, ' ').trim().slice(0, limit);
+  return printable.replaceAll(/\s+/gu, ' ').trim().slice(0, limit);
 }
 
 /**
@@ -242,6 +242,7 @@ export function summariseReports(body: unknown): readonly ReportSummary[] {
     : cspReportEntries(body);
   return entries
     .slice(0, MAX_REPORTS_PER_REQUEST)
-    .filter(([, report]) => !fromExtension(report))
-    .map(([type, report]) => summarise(type, report));
+    .flatMap(([type, report]) =>
+      fromExtension(report) ? [] : [summarise(type, report)],
+    );
 }
