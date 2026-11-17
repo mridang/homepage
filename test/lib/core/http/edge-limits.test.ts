@@ -273,50 +273,16 @@ interface Ratelimit {
   simple: { limit: number; period: number };
 }
 
-/**
- * Tells whether a value is a plain object.
- * @param value - The value to check.
- * @returns True when the value is a non-null, non-array object.
- * @example
- * ```ts
- * isRecord({ a: 1 });
- * ```
- */
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-/**
- * Tells whether a wrangler.jsonc ratelimits entry has the shape the tests read.
- * @param value - The entry to check.
- * @returns True when the entry declares a name, a namespace and a limit.
- * @example
- * ```ts
- * isRatelimit({ name: 'a', namespace_id: '1', simple: { limit: 1, period: 10 } });
- * ```
- */
-function isRatelimit(value: unknown): value is Ratelimit {
-  return (
-    isRecord(value) &&
-    typeof value.name === 'string' &&
-    typeof value.namespace_id === 'string' &&
-    isRecord(value.simple) &&
-    typeof value.simple.limit === 'number' &&
-    typeof value.simple.period === 'number'
-  );
+interface WranglerConfig {
+  ratelimits: Ratelimit[];
 }
 
 describe('wrangler.jsonc', () => {
-  const config: unknown = ts.parseConfigFileTextToJson(
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- the TypeScript API parses the file as any, and the tests below fail when the declared shape is wrong
+  const parsed: WranglerConfig = ts.parseConfigFileTextToJson(
     'wrangler.jsonc',
     wranglerText,
   ).config;
-  const parsed: { ratelimits: Ratelimit[] } = {
-    ratelimits:
-      isRecord(config) && Array.isArray(config.ratelimits)
-        ? config.ratelimits.filter(isRatelimit)
-        : [],
-  };
 
   it('declares a binding for every class and for the overall bucket, and no others', () => {
     const declared = parsed.ratelimits
