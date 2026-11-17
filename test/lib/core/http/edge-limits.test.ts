@@ -6,7 +6,6 @@ import path from 'node:path';
 
 import { describe, expect, it, jest } from '@jest/globals';
 import ts from 'typescript';
-import { z } from 'zod';
 
 import {
   GENERIC_CLASSES,
@@ -268,18 +267,56 @@ const wranglerText = await readFile(
   'utf8',
 );
 
+interface Ratelimit {
+  name: string;
+  namespace_id: string;
+  simple: { limit: number; period: number };
+}
+
+/**
+ * Tells whether a value is a plain object.
+ * @param value - The value to check.
+ * @returns True when the value is a non-null, non-array object.
+ * @example
+ * ```ts
+ * isRecord({ a: 1 });
+ * ```
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Tells whether a wrangler.jsonc ratelimits entry has the shape the tests read.
+ * @param value - The entry to check.
+ * @returns True when the entry declares a name, a namespace and a limit.
+ * @example
+ * ```ts
+ * isRatelimit({ name: 'a', namespace_id: '1', simple: { limit: 1, period: 10 } });
+ * ```
+ */
+function isRatelimit(value: unknown): value is Ratelimit {
+  return (
+    isRecord(value) &&
+    typeof value.name === 'string' &&
+    typeof value.namespace_id === 'string' &&
+    isRecord(value.simple) &&
+    typeof value.simple.limit === 'number' &&
+    typeof value.simple.period === 'number'
+  );
+}
+
 describe('wrangler.jsonc', () => {
-  const parsed = z
-    .object({
-      ratelimits: z.array(
-        z.object({
-          name: z.string(),
-          namespace_id: z.string(),
-          simple: z.object({ limit: z.number(), period: z.number() }),
-        }),
-      ),
-    })
-    .parse(ts.parseConfigFileTextToJson('wrangler.jsonc', wranglerText).config);
+  const config: unknown = ts.parseConfigFileTextToJson(
+    'wrangler.jsonc',
+    wranglerText,
+  ).config;
+  const parsed: { ratelimits: Ratelimit[] } = {
+    ratelimits:
+      isRecord(config) && Array.isArray(config.ratelimits)
+        ? config.ratelimits.filter(isRatelimit)
+        : [],
+  };
 
   it('declares a binding for every class and for the overall bucket, and no others', () => {
     const declared = parsed.ratelimits

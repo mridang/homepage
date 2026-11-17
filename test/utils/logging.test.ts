@@ -2,7 +2,6 @@
  * @file Tests the structured logging helpers.
  */
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { z } from 'zod';
 
 import { installFakeTracing } from '../lib/core/observability/fake-tracing';
 
@@ -37,7 +36,11 @@ function firstLine(spy: ConsoleSpy): string {
  * ```
  */
 function firstRecord(spy: ConsoleSpy): Record<string, unknown> {
-  return z.record(z.string(), z.unknown()).parse(JSON.parse(firstLine(spy)));
+  const parsed: unknown = JSON.parse(firstLine(spy));
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw new TypeError('The first log line is not a JSON object.');
+  }
+  return Object.fromEntries(Object.entries(parsed));
 }
 
 afterEach(() => {
