@@ -9,7 +9,7 @@
  */
 
 import { summariseReports } from '../../lib/core/http';
-import type { APIRoute } from 'astro';
+import type { APIContext } from 'astro';
 
 export const prerender = false;
 
@@ -29,7 +29,9 @@ const MAX_REPORT_BYTES = 16_384;
  * const response = await POST(context);
  * ```
  */
-export const POST: APIRoute = async (context) => {
+export const POST = async (
+  context: Pick<APIContext, 'request'>,
+): Promise<Response> => {
   const text = await context.request.text();
   if (new TextEncoder().encode(text).length > MAX_REPORT_BYTES) {
     return new Response(null, { status: 413 });
