@@ -1,8 +1,6 @@
 /**
  * @file Tests the rate-limit subject of a request's caller.
  */
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
 
 import { describe, expect, it } from '@jest/globals';
 
@@ -11,26 +9,7 @@ import {
   addressSubject,
   clientSubject,
 } from '@/lib/core/http';
-
-interface IpFixture {
-  loopbackV6: string;
-  loopbackV4: string;
-  loopbackMapped: string;
-  mappedV4: string;
-  forwardedFor: string;
-  documentationV6: string;
-  linkLocalZoned: string;
-  documentationV6Short: string;
-  callerV6: string;
-  subjectLoopback: string;
-  subjectDocumentation: string;
-  subjectLinkLocal: string;
-  counterKeyV6: string;
-}
-
-const ips = JSON.parse(
-  await readFile(path.join(process.cwd(), 'test/fixtures/ips.json'), 'utf8'),
-) as IpFixture;
+import ips from '../../../fixtures/ips.json';
 
 describe('addressSubject', () => {
   it('leaves an IPv4 address as it is', () => {

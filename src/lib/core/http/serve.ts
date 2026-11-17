@@ -58,7 +58,7 @@ export interface ServeApp {
 export interface ServeDeps {
   readonly app: ServeApp;
   /** The edge cache, or undefined where there is none (plain Node). */
-  readonly cache?: Cache;
+  readonly cache?: Pick<Cache, 'match' | 'put'>;
   /** What is rate limited, and how; the app's own unless a test supplies another. */
   readonly limits?: EdgeLimits;
   /** The pages the edge may keep a copy of; the app's own unless a test supplies others. */
@@ -230,6 +230,7 @@ async function answer(
     headers: forwardedHeaders(request.headers, csp, nonce),
   });
   const appStarted = performance.now();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the app declares the precise Cloudflare Env its generated handler needs, which the serve pipeline deliberately does not know, so only `never` accepts every app
   const fetched = await app.fetch(forwarded, env as never, ctx);
   const appMs = performance.now() - appStarted;
   const isHtml = (fetched.headers.get('content-type') ?? '').startsWith(

@@ -1,8 +1,6 @@
 /**
  * @file Tests which requests the edge cache may serve and keep.
  */
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
 
 import { afterEach, describe, expect, it } from '@jest/globals';
 
@@ -16,6 +14,7 @@ import {
   EDGE_CACHED_PAGES,
   EDGE_TTL_SECONDS,
 } from '@/lib/core/http';
+import ips from '../../../fixtures/ips.json';
 
 /** The pages these tests let the edge keep a copy of. */
 const pages: ReadonlySet<string> = new Set(['/', '/privacy']);
@@ -23,28 +22,8 @@ const pages: ReadonlySet<string> = new Set(['/', '/privacy']);
 /** The query names these tests let a kept page carry. */
 const allowed: ReadonlySet<string> = new Set(['alpha', 'beta']);
 
-const get = (path: string, headers: Record<string, string> = {}) =>
-  new Request(`https://app.test${path}`, { headers });
-
-interface IpFixture {
-  loopbackV6: string;
-  loopbackV4: string;
-  loopbackMapped: string;
-  mappedV4: string;
-  forwardedFor: string;
-  documentationV6: string;
-  linkLocalZoned: string;
-  documentationV6Short: string;
-  callerV6: string;
-  subjectLoopback: string;
-  subjectDocumentation: string;
-  subjectLinkLocal: string;
-  counterKeyV6: string;
-}
-
-const ips = JSON.parse(
-  await readFile(path.join(process.cwd(), 'test/fixtures/ips.json'), 'utf8'),
-) as IpFixture;
+const get = (pathname: string, headers: Record<string, string> = {}) =>
+  new Request(`https://app.test${pathname}`, { headers });
 
 describe('isEdgeCacheable', () => {
   it('keeps the public pages for signed-out visitors', () => {
@@ -100,8 +79,8 @@ describe('isEdgeCacheable', () => {
 });
 
 describe('isEdgeCacheable - the query string', () => {
-  const ok = (path: string, names: ReadonlySet<string> = allowed) =>
-    isEdgeCacheable(get(path), pages, 'app_session', names);
+  const ok = (pathname: string, names: ReadonlySet<string> = allowed) =>
+    isEdgeCacheable(get(pathname), pages, 'app_session', names);
 
   it('accepts a query made only of allowed names', () => {
     expect(ok('/?alpha=1')).toBe(true);

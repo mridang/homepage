@@ -2,6 +2,7 @@
  * @file Tests the structured logging helpers.
  */
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { z } from 'zod';
 
 import { installFakeTracing } from '../lib/core/observability/fake-tracing';
 
@@ -36,7 +37,7 @@ function firstLine(spy: ConsoleSpy): string {
  * ```
  */
 function firstRecord(spy: ConsoleSpy): Record<string, unknown> {
-  return JSON.parse(firstLine(spy)) as Record<string, unknown>;
+  return z.record(z.string(), z.unknown()).parse(JSON.parse(firstLine(spy)));
 }
 
 afterEach(() => {
@@ -88,7 +89,7 @@ describe('structured logging', () => {
     expect(parsed['event']).toBe('torrent.lookup');
     expect(parsed['status']).toBe('ok');
     expect(typeof parsed['ts']).toBe('string');
-    expect(Number.isNaN(Date.parse(parsed['ts'] as string))).toBe(false);
+    expect(Number.isNaN(Date.parse(String(parsed['ts'])))).toBe(false);
   });
 
   it('logWarn emits one warn-level line to console.error', () => {

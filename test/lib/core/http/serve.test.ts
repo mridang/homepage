@@ -57,7 +57,9 @@ function refusing() {
  * const cache = memoryCache();
  * ```
  */
-function memoryCache(): Cache & { readonly stored: Map<string, Response> } {
+function memoryCache(): Pick<Cache, 'match' | 'put'> & {
+  readonly stored: Map<string, Response>;
+} {
   const stored = new Map<string, Response>();
   return {
     stored,
@@ -71,18 +73,18 @@ function memoryCache(): Cache & { readonly stored: Map<string, Response> } {
         response,
       );
     },
-  } as unknown as Cache & { readonly stored: Map<string, Response> };
+  };
 }
 
 const ctx = () => {
   const pending: Promise<unknown>[] = [];
   return {
     pending,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- serve only calls waitUntil on the context, so a stand-in with that one member replaces the Worker's ExecutionContext
     context: {
       waitUntil: (promise: Promise<unknown>) => {
         pending.push(promise);
       },
-      passThroughOnException: () => {},
     } as unknown as ExecutionContext,
   };
 };

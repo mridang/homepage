@@ -11,7 +11,7 @@ const send = async (body: string) =>
       method: 'POST',
       body,
     }),
-  } as never) as Promise<Response>;
+  });
 
 describe('POST /csp/reports', () => {
   it('takes in a report with 204 and logs it as one line', async () => {

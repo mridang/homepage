@@ -6,6 +6,7 @@ import path from 'node:path';
 
 import { describe, expect, it, jest } from '@jest/globals';
 import ts from 'typescript';
+import { z } from 'zod';
 
 import {
   GENERIC_CLASSES,
@@ -19,6 +20,7 @@ import {
   EDGE_LIMITS,
   STATIC_PREFIXES,
 } from '@/lib/core/http';
+import ips from '../../../fixtures/ips.json';
 import type { GenericClass, RateLimitBinding } from '@/lib/core/http';
 
 const collator = new Intl.Collator();
@@ -261,40 +263,23 @@ describe('tooManyRequests', () => {
   });
 });
 
-interface IpFixture {
-  loopbackV6: string;
-  loopbackV4: string;
-  loopbackMapped: string;
-  mappedV4: string;
-  forwardedFor: string;
-  documentationV6: string;
-  linkLocalZoned: string;
-  documentationV6Short: string;
-  callerV6: string;
-  subjectLoopback: string;
-  subjectDocumentation: string;
-  subjectLinkLocal: string;
-  counterKeyV6: string;
-}
-
-const ips = JSON.parse(
-  await readFile(path.join(process.cwd(), 'test/fixtures/ips.json'), 'utf8'),
-) as IpFixture;
-
 const wranglerText = await readFile(
   path.join(process.cwd(), 'wrangler.jsonc'),
   'utf8',
 );
 
 describe('wrangler.jsonc', () => {
-  const parsed = ts.parseConfigFileTextToJson('wrangler.jsonc', wranglerText)
-    .config as {
-    ratelimits: {
-      name: string;
-      namespace_id: string;
-      simple: { limit: number; period: number };
-    }[];
-  };
+  const parsed = z
+    .object({
+      ratelimits: z.array(
+        z.object({
+          name: z.string(),
+          namespace_id: z.string(),
+          simple: z.object({ limit: z.number(), period: z.number() }),
+        }),
+      ),
+    })
+    .parse(ts.parseConfigFileTextToJson('wrangler.jsonc', wranglerText).config);
 
   it('declares a binding for every class and for the overall bucket, and no others', () => {
     const declared = parsed.ratelimits
