@@ -54,4 +54,11 @@ export default [
       'no-undef': 'off',
     },
   },
+  {
+    // eslint-plugin-sonarjs 4.2.3 applies this test-file rule to every
+    // file instead of only test files, flagging all sources and helpers.
+    rules: {
+      'sonarjs/no-empty-test-file': 'off',
+    },
+  },
 ];
